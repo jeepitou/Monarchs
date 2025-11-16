@@ -1,0 +1,30 @@
+{
+    "name": "Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:3eb5e48be8b92774690503468ca0f72d",
+        "DOTween.Modules",
+        "Lofelt.NiceVibrations",
+        "MoreMountains.Feedbacks",
+        "GUID:f7ad05cb15ef6674793ec2174827bc98",
+        "MoreMountains.Feedbacks.Cinemachine",
+        "MoreMountains.Feedbacks.HDRP",
+        "MoreMountains.Feedbacks.MMTools",
+        "MoreMountains.Feedbacks.NiceVibrations",
+        "MoreMountains.Feedbacks.PostProcessing",
+        "MoreMountains.Feedbacks.TextMeshPro",
+        "MoreMountains.Feedbacks.URP",
+        "MoreMountains.Tools"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

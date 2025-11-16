@@ -1,0 +1,18 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Monarchs
+{
+    public class continousRotation : MonoBehaviour
+	{
+		public Vector3 rotationSpeed = new Vector3(0, 50, 0); // Degrees per second
+
+		void Update()
+		{
+        // Rotate around the specified axes in local space
+        transform.Rotate(rotationSpeed * Time.deltaTime, Space.Self); 
+        // Or in world space: transform.Rotate(rotationSpeed * Time.deltaTime, Space.World);
+		}
+	}
+}
