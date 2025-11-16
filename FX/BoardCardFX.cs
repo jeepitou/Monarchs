@@ -6,6 +6,7 @@ using DG.Tweening;
 using Monarchs;
 using Monarchs.Ability;
 using Monarchs.Client;
+using Monarchs.FX.MovementFX;
 using Monarchs.Logic;
 using Monarchs.Tools;
 using UnityEngine;
@@ -24,6 +25,7 @@ namespace TcgEngine.FX
         public GameObject whitePieceDestroyFX;
         public GameObject blackPieceDestroyFX;
 
+        private static MovementFX _movementFX;
         private BoardCard _boardCard;
 
         private ParticleSystem _exhaustedFX = null;
@@ -40,6 +42,11 @@ namespace TcgEngine.FX
             GameClient.Get().onAttackStart += OnAttack;
  
             GameClient.Get().onTrapResolve += OnTrapResolve;
+            
+            if (_movementFX == null)
+            {
+                _movementFX = new MovementFX();
+            }
         }
 
         private void OnTrapResolve(Card trap, Card triggerer)
@@ -230,45 +237,7 @@ namespace TcgEngine.FX
             
             AudioTool.Get().PlaySFX("card_move", AssetData.Get().card_move_audio);
             
-            if (card.CardData.GetPieceType() == PieceType.Knight)
-            {
-                GameClient.Get().animationManager.AddToQueue(DoJumpMoveFx(slot), gameObject);
-            }
-            else if (card.CardData.HasTrait("incorporeal"))
-            {
-                GameClient.Get().animationManager.AddToQueue(DoIncorporealMoveFx(slot), gameObject);
-            }
-            else
-            {
-                GameClient.Get().animationManager.AddToQueue(DoMoveFx(slot), gameObject);
-            }
-        }
-        
-        private IEnumerator DoMoveFx(Slot slot)
-        {
-            int distanceTo = _boardCard.GetCard().slot.GetDistanceTo(slot);
-            Vector3 endPos = BoardSlot.Get(slot).transform.position;
-            if (endPos == transform.position)
-                yield break;
-            float duration = 0.3f + (0.1f * distanceTo);
-            yield return transform.DOMove(endPos, duration).SetEase(Ease.InOutSine).WaitForCompletion();
-        }
-        
-        private IEnumerator DoJumpMoveFx(Slot slot)
-        {
-            int distanceTo = _boardCard.GetCard().slot.GetDistanceTo(slot);
-            Vector3 endPos = BoardSlot.Get(slot).transform.position;
-            if (endPos == transform.position)
-                yield break;
-            float duration = 0.3f + (0.1f * distanceTo);
-            float jumpHeight = 0.5f + 0.2f * distanceTo;
-            
-            yield return transform.DOJump(endPos, jumpHeight, 1, duration).SetEase(Ease.InOutSine).SetAutoKill(false).WaitForCompletion();
-        }
-        
-        private IEnumerator DoIncorporealMoveFx(Slot slot)
-        {
-            yield return null;
+            GameClient.Get().animationManager.AddToQueue(_movementFX.GetMovementFX(_boardCard).DoMove(_boardCard, slot), gameObject);
         }
 
         private void OnAttack(Card attacker, Card target, int damage)
@@ -289,35 +258,11 @@ namespace TcgEngine.FX
                 target = gdata.lastAttackedCard;
             }
             
-            // if (card.uid == target.uid || card.uid == attacker.uid)
-            // {
-            //     if (target.CardData.IsCharacter())
-            //     {
-            //         TimeTool.WaitFor(0.5f, () =>
-            //         {
-            //             //Damage Number Text FX
-            //             int value = card.GetHP() - _boardCard.currentHPAfterDamage;
-            //             _boardCard.currentHPAfterDamage = card.GetHP();
-            //             
-            //             if (value != 0)
-            //             {
-            //                 GameClient.Get().animationManager.AddToQueue(ShowDamageAfterAttack(value), gameObject);
-            //             }
-            //
-            //             if (_boardCard != null)
-            //             {
-            //                 _boardCard.UpdateHP(card, gdata);
-            //             }
-            //         });
-            //     }
-            // }
-            
-            
             BoardCard boardTarget = (BoardCard)BoardCard.Get(target.uid);
             if (boardTarget != null)
             {
                 bool killed = target.GetHP() - damage <= 0;
-                yield return ChargeInto(boardTarget, killed);
+                yield return _movementFX.GetMovementFX(_boardCard).ChargeInto(_boardCard, boardTarget, killed);
                 _boardCard.UpdateHP(card, gdata);
                 boardTarget.UpdateHP(target, gdata);
                 GameObject prefab = cardData.damageFX ? cardData.damageFX : AssetData.Get().card_damage_fx;
@@ -350,12 +295,6 @@ namespace TcgEngine.FX
             
 
         }
-
-        private IEnumerator ShowDamageAfterAttack(int value)
-        {
-            DamageFXManager.Get().ShowDamage(transform.position, GetDamageString(value));
-            yield return new WaitForSeconds(0.1f);
-        }
         
         private IEnumerator DoAttackFx(GameObject fxPrefab)
         {
@@ -385,58 +324,6 @@ namespace TcgEngine.FX
                     yield return animElement.AnimationCoroutine();
                 }
             }
-        }
-
-        private IEnumerator ChargeInto(BoardCard target, bool killed = false)
-        {
-            if (target != null)
-            {
-                Vector3 dir = target.transform.position - transform.position;
-                Vector3 currentPos = transform.position;
-                bool isKnight = _boardCard.GetCard().CardData.GetPieceType() == PieceType.Knight;
-                
-                if (!isKnight)
-                {
-                    yield return transform.DOMove(currentPos - dir.normalized * 0.5f, 0.3f).WaitForCompletion();
-                    yield return transform.DOMove(target.transform.position - dir.normalized*0.1f, 0.1f).WaitForCompletion();
-                    transform.DOMove(target.transform.position - dir.normalized*0.2f, 0.05f);
-                }
-                else
-                {
-                    yield return transform.DOJump(target.transform.position - dir.normalized * 0.1f, 1.5f, 1, 0.3f).WaitForCompletion();
-                }
-                
-                if (!killed) // When the piece isn't killed, piece moves back to fallback square
-                {
-                    // Make the target "shake" to indicate impact
-                    target.transform.DOMove(target.transform.position + dir.normalized * 0.2f, 0.1f).OnComplete(
-                        () => { target.transform.DOMove(target.transform.position - dir.normalized * 0.2f, 0.1f); }
-                    );
-                    
-                    if (!isKnight)
-                    {
-                        transform.DOMove(currentPos, 0.3f);
-                    }
-                    else
-                    {
-                        Vector2S fallbackSquare = _boardCard.GetCard().GetCurrentMovementScheme()
-                            .GetClosestAvailableSquaresOnMoveTrajectory(_boardCard.GetCard().GetCoordinates(),
-                                target.GetComponent<BoardCard>().GetCard().GetCoordinates(),GameClient.GetGameData())[0];
-                        
-                        yield return transform.DOJump(BoardSlot.Get(fallbackSquare).transform.position, 0.3f,1, 0.3f).WaitForCompletion();
-                    }
-                }
-                else if (target.GetCardData().HasAbility(AbilityTrigger.OnDeath))
-                {
-                    transform.DOMove(currentPos - dir.normalized * 0.3f, 0.2f);
-                    StartCoroutine(MoveToPosition(target.transform.position, 0.2f, 2.0f));
-                }
-            }
-        }
-        
-        private IEnumerator MoveToPosition(Vector3 position, float duration, float delay = 0f)
-        {
-            yield return transform.DOMove(position, duration).SetEase(Ease.InOutSine).WaitForCompletion();
         }
         
         private void UpdateFX<T>(
