@@ -2,38 +2,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using DG.Tweening;
-using Monarchs;
-using Monarchs.Ability;
+using Monarchs.Board;
 using Monarchs.Client;
-using Monarchs.FX.MovementFX;
 using Monarchs.Logic;
 using Monarchs.Tools;
+using TcgEngine;
 using UnityEngine;
 
-namespace TcgEngine.FX
+namespace Monarchs.FX
 {
-    /// <summary>
-    /// All FX/anims related to a card on the board
-    /// </summary>
-
     public class BoardCardFX : MonoBehaviour
     {
-        public Material killMat;
-        public string killMatFade = "noise_fade";
         
         public GameObject whitePieceDestroyFX;
         public GameObject blackPieceDestroyFX;
 
-        private static MovementFX _movementFX;
+        private static MovementFX.MovementFX _movementFX;
         private BoardCard _boardCard;
 
-        private ParticleSystem _exhaustedFX = null;
+        private ParticleSystem _exhaustedFX;
 
-        private Dictionary<StatusType, GameObject> _statusFXList = new Dictionary<StatusType, GameObject>();
-        private Dictionary<string, GameObject> _traitFXList = new Dictionary<string, GameObject>(); //string is trait id
+        private Dictionary<StatusType, GameObject> _statusFXList = new ();
+        private Dictionary<string, GameObject> _traitFXList = new (); //string is trait id
 
-        void Awake()
+        private void Awake()
         {
             _boardCard = GetComponent<BoardCard>();
             _boardCard.onKill += OnKill;
@@ -45,7 +37,7 @@ namespace TcgEngine.FX
             
             if (_movementFX == null)
             {
-                _movementFX = new MovementFX();
+                _movementFX = new MovementFX.MovementFX();
             }
         }
 
@@ -53,20 +45,14 @@ namespace TcgEngine.FX
         {
             if (triggerer.uid == _boardCard.GetCardUID() && triggerer.playerID == GameClient.Get().GetPlayerID())
             {
-                GameClient.Get().animationManager.AddToQueue(OnTrapResolveCoroutine(trap, triggerer), gameObject);
+                GameClient.Get().animationManager.AddToQueue(OnTrapResolveCoroutine(trap), gameObject);
             }
         }
 
-        private IEnumerator OnTrapResolveCoroutine(Card trap, Card triggerer)
+        private IEnumerator OnTrapResolveCoroutine(Card trap)
         {
-            GameObject trapFX = trap.CardData.trapTriggeredFX;
-            if (trapFX == null)
-            {
-                trapFX = AssetData.Get().trap_triggered_fx;
-            }
-            
             FXResult result = new FXResult();
-            yield return FXTool.DoFX(trapFX, BoardSlot.Get(trap.slot).transform.position, result);
+            yield return FXTool.DoFX(trap.CardData.TrapTriggeredFX, BoardSlot.Get(trap.slot).transform.position, result);
             
             if (result.fxObject != null)
             {
@@ -104,14 +90,14 @@ namespace TcgEngine.FX
             UpdateFX(
                 card.status.Select(s => s.type),
                 _statusFXList,
-                (StatusType type) => StatusData.Get(type)?.status_fx
+                (type) => StatusData.Get(type)?.status_fx
             );
 
             // For trait FX
             UpdateFX(
                 card.traits.Select(t => t.id),
                 _traitFXList,
-                (string traitId) => TraitData.Get(traitId)?.fx
+                (traitId) => TraitData.Get(traitId)?.fx
             );
 
             //Exhausted add/remove
@@ -124,14 +110,9 @@ namespace TcgEngine.FX
         private void OnSpawn()
         {
             CardData cardData = _boardCard.GetCardData();
-
-            //Spawn Audio
-            AudioClip audio = cardData?.spawnAudio != null ? cardData.spawnAudio : AssetData.Get().card_spawn_audio;
-            AudioTool.Get().PlaySFX("card_spawn", audio);
-
-            //Spawn FX
-            GameObject spawnFX = cardData.spawnFX != null ? cardData.spawnFX : AssetData.Get().card_spawn_fx;
-            GameClient.Get().animationManager.AddToQueue(DoSpawnFX(spawnFX), gameObject);
+            
+            AudioTool.Get().PlaySFX("card_spawn", cardData?.SpawnAudio);
+            GameClient.Get().animationManager.AddToQueue(DoSpawnFX(cardData?.SpawnFX), gameObject);
 
             //Exhausted fx
             if (AssetData.Get().card_exhausted_fx != null)
@@ -144,9 +125,9 @@ namespace TcgEngine.FX
             //Idle status
             TimeTool.WaitFor(1f, () =>
             {
-                if (cardData.idleFX != null)
+                if (cardData?.IdleFX != null)
                 {
-                    GameObject fx = Instantiate(cardData.idleFX, transform);
+                    GameObject fx = Instantiate(cardData.IdleFX, transform);
                     fx.transform.localPosition = Vector3.zero;
                 }
             });
@@ -198,9 +179,8 @@ namespace TcgEngine.FX
             CardData cardData = _boardCard.GetCardData();
 
             //Death FX
-            GameObject deathFX = cardData.deathFX != null ? cardData.deathFX : AssetData.Get().card_destroy_fx;
             FXResult result = new FXResult();
-            yield return FXTool.DoFX(deathFX, transform.position, result);
+            yield return FXTool.DoFX(cardData.DeathFX, transform.position, result);
             
             if (result.fxObject != null)
             {
@@ -210,29 +190,15 @@ namespace TcgEngine.FX
                     yield return animElement.AnimationCoroutine();
                 }
             }
-
-            //Death audio
-            AudioClip audio = cardData?.deathAudio != null ? cardData.deathAudio : AssetData.Get().card_destroy_audio;
-            AudioTool.Get().PlaySFX("card_spawn", audio);
+            
+            AudioTool.Get().PlaySFX("card_spawn", cardData.DeathAudio);
 
             Destroy(gameObject);
-        }
-		
-		private void FadeSetVal(SpriteRenderer render, float val)
-        {
-            render.material = killMat;
-            render.material.SetFloat(killMatFade, val);
-        }
-
-        private void FadeKill(SpriteRenderer render, float val, float duration)
-        {
-            //AnimMatFX anim = AnimMatFX.Create(render.gameObject, render.material);
-            //anim.SetFloat(kill_mat_fade, val, duration);
         }
 
         private void OnMove(Card card, Slot slot)
         {
-            if (card != _boardCard.GetCard())
+            if (card.uid != _boardCard.GetCard().uid)
                 return;
             
             AudioTool.Get().PlaySFX("card_move", AssetData.Get().card_move_audio);
@@ -258,42 +224,28 @@ namespace TcgEngine.FX
                 target = gdata.lastAttackedCard;
             }
             
-            BoardCard boardTarget = (BoardCard)BoardCard.Get(target.uid);
+            BoardCard boardTarget = (BoardCard)BoardElement.Get(target.uid);
             if (boardTarget != null)
             {
                 bool killed = target.GetHP() - damage <= 0;
                 yield return _movementFX.GetMovementFX(_boardCard).ChargeInto(_boardCard, boardTarget, killed);
                 _boardCard.UpdateHP(card, gdata);
                 boardTarget.UpdateHP(target, gdata);
-                GameObject prefab = cardData.damageFX ? cardData.damageFX : AssetData.Get().card_damage_fx;
-                AudioClip impactAudio = cardData.damageAudio ? cardData.damageAudio : AssetData.Get().card_damage_audio;
-                GameClient.Get().animationManager.AddToQueue(DoDamageFX(prefab, boardTarget.transform.position), gameObject);
-                AudioTool.Get().PlaySFX("card_hit", impactAudio);
-
+                GameClient.Get().animationManager.AddToQueue(DoDamageFX(cardData.DamageFX, boardTarget.transform.position), gameObject);
+                AudioTool.Get().PlaySFX("card_hit", cardData.DamageAudio);
+                
                 if (killed)
                 {
-                    GameObject g;
-                    if (target.playerID == GameClient.GetGameData().firstPlayer)
-                    {
-                        g = Instantiate(whitePieceDestroyFX, transform.position, Quaternion.identity);
-                    }
-                    else
-                    {
-                        g = Instantiate(blackPieceDestroyFX, transform.position, Quaternion.identity);
-                    }
+                    GameObject fxToUse = target.playerID == GameClient.GetGameData().firstPlayer ? whitePieceDestroyFX : blackPieceDestroyFX;
+                    fxToUse = Instantiate(fxToUse, transform.position, Quaternion.identity);
                     
                     Vector3 dir = (BoardSlot.Get(target.slot).transform.position - BoardSlot.Get(attacker.slot).transform.position).normalized;
-                    g.transform.LookAt(transform.position + dir);
+                    fxToUse.transform.LookAt(transform.position + dir);
                 }
-
-                //Attack FX and Audio
-                GameObject fx = cardData.attackFX != null ? cardData.attackFX : AssetData.Get().card_attack_fx;
-                GameClient.Get().animationManager.AddToQueue(DoAttackFx(fx), gameObject);
-                AudioClip audio = cardData?.attackAudio != null ? cardData.attackAudio : AssetData.Get().card_attack_audio;
-                AudioTool.Get().PlaySFX("card_attack", audio);
+                
+                GameClient.Get().animationManager.AddToQueue(DoAttackFx(cardData.AttackFX), gameObject);
+                AudioTool.Get().PlaySFX("card_attack", cardData.AttackAudio);
             }
-            
-
         }
         
         private IEnumerator DoAttackFx(GameObject fxPrefab)

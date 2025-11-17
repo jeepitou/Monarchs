@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using Monarchs.Ability;
 using Monarchs.Board;
+using Monarchs.FX;
 using Monarchs.Logic;
 using Monarchs.UI;
 using Sirenix.OdinInspector;
@@ -180,9 +181,9 @@ namespace Monarchs.Client
                 _lastAttackDamage = damage;
                 _lastTargetOfAttack = target;
                 float delay = 0f;
-                if (attacker.CardData.rangeAttackFX != null)
+                if (attacker.CardData.RangeAttackFX != null)
                 {
-                    GameObject projectile = Instantiate(attacker.CardData.rangeAttackFX, transform.position, Quaternion.identity);
+                    GameObject projectile = Instantiate(attacker.CardData.RangeAttackFX, transform.position, Quaternion.identity);
                     Vector3 targetPosition;
                     if (target == null)
                     {

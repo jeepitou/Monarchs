@@ -149,18 +149,18 @@ namespace TcgEngine
         public string desc;
 
         [Header("FX")]
-        public GameObject spawnFX;
-        public GameObject deathFX;
-        public GameObject attackFX;
-        public GameObject rangeAttackFX;
-        public GameObject damageFX;
-        public GameObject idleFX;
-        public GameObject trapOnGroundFX;
-        public GameObject trapTriggeredFX;
-        public AudioClip spawnAudio;
-        public AudioClip deathAudio;
-        public AudioClip attackAudio;
-        public AudioClip damageAudio;
+        [SerializeField]private GameObject spawnFX;
+        [SerializeField]private GameObject deathFX;
+        [SerializeField]private GameObject attackFX;
+        [SerializeField]private GameObject rangeAttackFX;
+        [SerializeField]private GameObject damageFX;
+        [SerializeField]private GameObject idleFX;
+        [SerializeField]private GameObject trapOnGroundFX;
+        [SerializeField]private GameObject trapTriggeredFX;
+        [SerializeField]private AudioClip spawnAudio;
+        [SerializeField]private AudioClip deathAudio;
+        [SerializeField]private AudioClip attackAudio;
+        [SerializeField]private AudioClip damageAudio;
         
 
         [Header("Availability")]
@@ -575,6 +575,21 @@ namespace TcgEngine
         {
             return cardList;
         }
+        
+        public GameObject SpawnFX => spawnFX ? spawnFX : AssetData.Get().card_spawn_fx; 
+        public GameObject DeathFX => deathFX ? deathFX : AssetData.Get().card_destroy_fx;
+        public GameObject AttackFX => attackFX ? attackFX : AssetData.Get().card_attack_fx;
+        public GameObject RangeAttackFX => rangeAttackFX;
+        public GameObject DamageFX => damageFX ? damageFX : AssetData.Get().card_damage_fx;
+        public GameObject IdleFX => idleFX;
+        public GameObject TrapOnGroundFX => trapOnGroundFX;
+        public GameObject TrapTriggeredFX => trapTriggeredFX ? trapTriggeredFX : AssetData.Get().trap_triggered_fx;
+        public AudioClip SpawnAudio => spawnAudio ? spawnAudio : AssetData.Get().card_spawn_audio;
+        public AudioClip DeathAudio => deathAudio ? deathAudio : AssetData.Get().card_destroy_audio;
+        public AudioClip AttackAudio => attackAudio ? attackAudio : AssetData.Get().card_attack_audio;
+        public AudioClip DamageAudio => damageAudio ? damageAudio : AssetData.Get().card_damage_audio;
+        
+        
 
         public PieceModel GetSkin(string skinName)
         {
