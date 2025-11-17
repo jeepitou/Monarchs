@@ -5,6 +5,9 @@ using Monarchs.Client;
 using Monarchs.Logic;
 using UnityEngine;
 
+//TODO Rework GameBoardFX to simplify it and merge the TriggerAnimation that is currently in AnimationManager.cs with GameBoardFX
+//TODO Figure out how to manage the position of the pieces when the Dying Wish ability is triggered
+//TODO Validate if slot is available after killing a piece with Dying Wish ability, and move to fallback position if not
 namespace Monarchs.FX.MovementFX
 {
     public class MovementFX
@@ -72,7 +75,7 @@ namespace Monarchs.FX.MovementFX
         
         protected virtual void WaitForDyingWishAnimation(BoardCard boardCard, BoardCard target, Vector3 dir)
         {
-            boardCard.transform.DOMove(target.transform.position - dir.normalized * 0.3f, 0.2f);
+            boardCard.transform.DOMove(target.transform.position - dir.normalized * .8f, 0.2f);
             boardCard.StartCoroutine(MoveToPosition(boardCard, target.transform.position, 0.2f, 2.0f));
         }
 
@@ -93,6 +96,8 @@ namespace Monarchs.FX.MovementFX
         
         protected IEnumerator MoveToPosition(BoardCard boardCard, Vector3 position, float duration, float delay = 0f)
         {
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
             yield return boardCard.transform.DOMove(position, duration).SetEase(Ease.InOutSine).WaitForCompletion();
         }
     }

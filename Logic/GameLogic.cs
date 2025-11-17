@@ -466,9 +466,9 @@ namespace Monarchs.Logic
         /// <summary>
         /// Creates a new card and sends it to the board
         /// </summary>
-        public virtual Card SummonCard(int playerID, CardData cardData, VariantData variant, Slot slot, bool isSummoningCohort=false, string cohortUid = "")
+        public virtual Card SummonCard(int playerID, CardData cardData, VariantData variant, Slot slot, bool isSummoningCohort=false, string cohortUid = "", bool usingGameHelper=false)
         {
-            return _cardManager.SummonCard(playerID, cardData, variant, slot, isSummoningCohort, cohortUid);
+            return _cardManager.SummonCard(playerID, cardData, variant, slot, isSummoningCohort, cohortUid, usingGameHelper);
         }
 
         /// <summary>

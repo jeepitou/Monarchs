@@ -719,6 +719,11 @@ namespace Monarchs.Client
             MsgCastAbility msg = data.Get<MsgCastAbility>();
             AbilityData ability = AbilityData.Get(msg.abilityID);
             Card caster = _gameData.GetCard(msg.casterUID);
+            Slot slot = Slot.Get(msg.slotX, msg.slotY);
+            
+            //Update caster slot if it changed (for abilities that move the caster, to have FX at the right place)
+            caster.slot = slot;
+            
             animationManager.AddTriggerAnimationToQueue(ability.trigger, caster);
             onAbilityStart?.Invoke(ability, caster);
         }

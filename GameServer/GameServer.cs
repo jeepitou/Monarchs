@@ -1149,6 +1149,8 @@ namespace Monarchs.GameServer
             if (caster != null)
             {
                 msg.casterUID = caster.uid;
+                msg.slotX = caster.slot.x;
+                msg.slotY = caster.slot.y;
             }
             msg.target_uid = "";
             RefreshAll(); //Ability trigger should not change the game state,  but we want to update game state in case we get multiple triggers before ending ability

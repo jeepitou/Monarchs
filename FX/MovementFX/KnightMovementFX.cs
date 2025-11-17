@@ -25,12 +25,6 @@ namespace Monarchs.FX.MovementFX
             yield return boardCard.transform.DOMove(fallbackPos, 0.3f);
         }
         
-        protected override void WaitForDyingWishAnimation(BoardCard boardCard, BoardCard target, Vector3 dir)
-        {
-            boardCard.transform.DOMove(target.transform.position - dir.normalized * 0.3f, 0.2f);
-            boardCard.StartCoroutine(MoveToPosition(boardCard, target.transform.position, 0.2f, 2.0f));
-        }
-
         protected override IEnumerator DoAttackMove(BoardCard boardCard, BoardCard target, Vector3 currentPos, Vector3 dir)
         {
             yield return boardCard.transform
