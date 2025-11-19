@@ -13,7 +13,6 @@ namespace Monarchs.FX
 {
     public class BoardCardFX : MonoBehaviour
     {
-        
         public GameObject whitePieceDestroyFX;
         public GameObject blackPieceDestroyFX;
 
@@ -32,6 +31,7 @@ namespace Monarchs.FX
 
             GameClient.Get().onCardMoved += OnMove;
             GameClient.Get().onAttackStart += OnAttack;
+            GameClient.Get().onAttackEnd += OnAttackEnd;
  
             GameClient.Get().onTrapResolve += OnTrapResolve;
             
@@ -39,6 +39,22 @@ namespace Monarchs.FX
             {
                 _movementFX = new MovementFX.MovementFX();
             }
+        }
+
+        private void OnAttackEnd(Card attacker, Card target, int damage)
+        {
+            if (attacker.uid == _boardCard.GetCard().uid)
+            {
+                GameClient.Get().animationManager.AddToQueue(_movementFX.GetMovementFX(_boardCard).OnAttackEnd(_boardCard), gameObject);
+            }
+        }
+        
+        private void OnDestroy()
+        {
+            GameClient.Get().onCardMoved -= OnMove;
+            GameClient.Get().onTrapResolve -= OnTrapResolve;
+            GameClient.Get().onAttackStart -= OnAttack;
+            GameClient.Get().onAttackEnd -= OnAttackEnd;
         }
 
         private void OnTrapResolve(Card trap, Card triggerer)
@@ -72,12 +88,7 @@ namespace Monarchs.FX
             OnSpawn();
         }
 
-        private void OnDestroy()
-        {
-            GameClient.Get().onCardMoved -= OnMove;
-            GameClient.Get().onTrapResolve -= OnTrapResolve;
-            GameClient.Get().onAttackStart -= OnAttack;
-        }
+        
 
         void Update()
         {
@@ -224,7 +235,7 @@ namespace Monarchs.FX
                 target = gdata.lastAttackedCard;
             }
             
-            BoardCard boardTarget = (BoardCard)BoardElement.Get(target.uid);
+            BoardCard boardTarget = BoardElement.Get(target.uid) as BoardCard;
             if (boardTarget != null)
             {
                 bool killed = target.GetHP() - damage <= 0;

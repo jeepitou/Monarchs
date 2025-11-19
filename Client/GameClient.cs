@@ -722,7 +722,10 @@ namespace Monarchs.Client
             Slot slot = Slot.Get(msg.slotX, msg.slotY);
             
             //Update caster slot if it changed (for abilities that move the caster, to have FX at the right place)
-            caster.slot = slot;
+            if (caster != null && slot.IsValid())
+            {
+                caster.slot = slot;
+            }
             
             animationManager.AddTriggerAnimationToQueue(ability.trigger, caster);
             onAbilityStart?.Invoke(ability, caster);

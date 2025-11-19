@@ -149,18 +149,18 @@ namespace TcgEngine
         public string desc;
 
         [Header("FX")]
-        [SerializeField]private GameObject spawnFX;
-        [SerializeField]private GameObject deathFX;
-        [SerializeField]private GameObject attackFX;
-        [SerializeField]private GameObject rangeAttackFX;
-        [SerializeField]private GameObject damageFX;
-        [SerializeField]private GameObject idleFX;
-        [SerializeField]private GameObject trapOnGroundFX;
-        [SerializeField]private GameObject trapTriggeredFX;
-        [SerializeField]private AudioClip spawnAudio;
-        [SerializeField]private AudioClip deathAudio;
-        [SerializeField]private AudioClip attackAudio;
-        [SerializeField]private AudioClip damageAudio;
+        [SerializeField] private GameObject spawnFX;
+        [SerializeField] private GameObject deathFX;
+        [SerializeField] private GameObject attackFX;
+        [SerializeField] private GameObject rangeAttackFX;
+        [SerializeField] private GameObject damageFX;
+        [SerializeField] private GameObject idleFX;
+        [SerializeField] private GameObject trapOnGroundFX;
+        [SerializeField] private GameObject trapTriggeredFX;
+        [SerializeField] private AudioClip spawnAudio;
+        [SerializeField] private AudioClip deathAudio;
+        [SerializeField] private AudioClip attackAudio;
+        [SerializeField] private AudioClip damageAudio;
         
 
         [Header("Availability")]

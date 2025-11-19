@@ -148,22 +148,11 @@ namespace Monarchs.Logic
                 _gameLogic.onAttackStart?.Invoke(attacker, target, damage);
             }
 
-            //Before damaging the card, we validate if the target will die to move the piece to the correct square
-            
-            
-            
-            
             //Damage Cards
             if (target != null)
             {
-                Game gameClone = new Game();
-                Game.Clone(_game, gameClone);
-                GameLogic logicCopy = new GameLogic(gameClone , true);
-                logicCopy.DamageCard(gameClone.GetCard(attacker.uid), 
-                    gameClone.GetCard(target.uid), 
-                    damage);
-                bool targetWillDie = !gameClone.IsOnBoard(gameClone.GetCard(target.uid));
-                bool slotWillBeFree = gameClone.GetSlotCard(targetSlot) == null;
+                bool targetWillDie = attacker.GetAttack() >= target.GetHP() + target.GetArmor();
+                bool slotWillBeFree = !target.SpawnsACardOnSlotWhenInDies(_gameLogic, targetSlot, targetSlot);
                 
                 if (!rangedAttack && attacker.CanMove(true))
                 {

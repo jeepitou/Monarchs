@@ -12,6 +12,9 @@ namespace Monarchs.FX.MovementFX
 {
     public class MovementFX
     {
+        private const float DYING_WISH_ANIMATION_DELAY = 2f;
+        private const float DYING_WISH_ANIMATION_DURATION = 0.2f;
+        private const float DYING_WISH_ANIMATION_OFFSET = 0.8f;
         protected KnightMovementFX _knightMovementFX;
         protected IncorporealMovementFX _incorporealMovementFX;
         
@@ -20,11 +23,11 @@ namespace Monarchs.FX.MovementFX
         {
             if (boardCard.GetCard().CardData.HasTrait("incorporeal"))
             {
-                return _incorporealMovementFX != null? _incorporealMovementFX : (_incorporealMovementFX = new IncorporealMovementFX());
+                return _incorporealMovementFX != null ? _incorporealMovementFX : (_incorporealMovementFX = new IncorporealMovementFX());
             }
             else if (boardCard.GetCard().CardData.GetPieceType() == PieceType.Knight)
             {
-                return _knightMovementFX != null? _knightMovementFX : (_knightMovementFX = new KnightMovementFX());
+                return _knightMovementFX != null ? _knightMovementFX : (_knightMovementFX = new KnightMovementFX());
             }
             return this;
         }
@@ -47,7 +50,14 @@ namespace Monarchs.FX.MovementFX
                 Vector3 dir = target.transform.position - boardCard.transform.position;
                 Vector3 currentPos = boardCard.transform.position;
 
-                yield return DoAttackMove(boardCard, target, currentPos, dir);
+                if (killed && !target.GetCardData().HasAbility(AbilityTrigger.OnDeath))
+                {
+                    yield return DoAttackMoveWithKillAndNoDyingWish(boardCard, target, currentPos, dir);
+                }
+                else
+                {
+                    yield return DoAttackMove(boardCard, target, currentPos, dir);
+                }
                 
                 if (!killed) // When the piece isn't killed, piece moves back to fallback square
                 {
@@ -59,6 +69,15 @@ namespace Monarchs.FX.MovementFX
                 {
                     WaitForDyingWishAnimation(boardCard, target, dir);
                 }
+            }
+        }
+        
+        public virtual IEnumerator OnAttackEnd(BoardCard boardCard)
+        {
+            if (boardCard.transform.position != BoardSlot.Get(boardCard.GetCard().slot).transform.position)
+            {
+                Vector3 fallbackPos = BoardSlot.Get(boardCard.GetCard().slot).transform.position;
+                yield return boardCard.transform.DOMove(fallbackPos, 0.3f).SetEase(Ease.InOutSine).WaitForCompletion();
             }
         }
         
@@ -75,8 +94,15 @@ namespace Monarchs.FX.MovementFX
         
         protected virtual void WaitForDyingWishAnimation(BoardCard boardCard, BoardCard target, Vector3 dir)
         {
-            boardCard.transform.DOMove(target.transform.position - dir.normalized * .8f, 0.2f);
-            boardCard.StartCoroutine(MoveToPosition(boardCard, target.transform.position, 0.2f, 2.0f));
+            boardCard.transform.DOMove(target.transform.position - dir.normalized * DYING_WISH_ANIMATION_OFFSET, DYING_WISH_ANIMATION_DURATION).WaitForCompletion();
+            // Vector3 targetPos = BoardSlot.Get(boardCard.GetCard().slot).transform.position;
+            // boardCard.StartCoroutine(MoveToPosition(boardCard, targetPos, DYING_WISH_ANIMATION_DURATION, DYING_WISH_ANIMATION_DELAY));
+        }
+        
+        protected virtual IEnumerator DoAttackMoveWithKillAndNoDyingWish(BoardCard boardCard, BoardCard target, Vector3 currentPos, Vector3 dir)
+        {
+            yield return boardCard.transform.DOMove(currentPos - dir.normalized * 0.5f, 0.3f).WaitForCompletion();
+            yield return boardCard.transform.DOMove(target.transform.position, 0.1f).WaitForCompletion();
         }
 
         protected virtual IEnumerator DoAttackMove(BoardCard boardCard, BoardCard target, Vector3 currentPos, Vector3 dir)

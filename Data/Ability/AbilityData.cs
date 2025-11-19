@@ -421,6 +421,23 @@ namespace Monarchs.Ability
             return false;
         }
 
+        public virtual bool SpawnsACardOnSlotWhenInDies(GameLogic logic, AbilityArgs args, Slot slot)
+        {
+            if (trigger != AbilityTrigger.OnDeath)
+            {
+                return false;
+            }
+            
+            foreach (EffectData eff in effects)
+            {
+                if (eff.SlotIsEmptyAfterEffect(logic, args, slot) == false)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public virtual List<ITargetable> GetTargets(Game data, Card caster, ITargetable target=null, ListSwap<ITargetable> memoryArray = null, bool dontVerifyPlayTarget=false)
         {
             if (targetType == AbilityTargetType.PlayTarget)

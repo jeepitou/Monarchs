@@ -19,7 +19,7 @@ namespace Monarchs.FX.MovementFX
         {
             Vector2S fallbackSquare = boardCard.GetCard().GetCurrentMovementScheme()
                 .GetClosestAvailableSquaresOnMoveTrajectory(boardCard.GetCard().GetCoordinates(),
-                    target.GetComponent<BoardCard>().GetCard().GetCoordinates(), GameClient.GetGameData())[0];
+                    target.GetCard().GetCoordinates(), GameClient.GetGameData())[0];
             Vector3 fallbackPos = BoardSlot.Get(fallbackSquare).transform.position;
             
             yield return boardCard.transform.DOMove(fallbackPos, 0.3f);
@@ -29,6 +29,12 @@ namespace Monarchs.FX.MovementFX
         {
             yield return boardCard.transform
                 .DOJump(target.transform.position - dir.normalized * 0.1f, 1.5f, 1, 0.3f).WaitForCompletion();
+        }
+
+        protected override IEnumerator DoAttackMoveWithKillAndNoDyingWish(BoardCard boardCard, BoardCard target, Vector3 currentPos, Vector3 dir)
+        {
+            yield return boardCard.transform
+                .DOJump(target.transform.position, 1.5f, 1, 0.3f).WaitForCompletion();
         }
     }
 }
