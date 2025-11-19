@@ -140,7 +140,7 @@ namespace TcgEngine
             }
             else if (args.target is Player)
             {
-                SlotIsEmptyAfterEffectPlayerTarget(logic, args, slot);
+                return SlotIsEmptyAfterEffectPlayerTarget(logic, args, slot);
             }
             else if (args.target is Slot)
             {

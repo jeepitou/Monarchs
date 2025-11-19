@@ -95,8 +95,6 @@ namespace Monarchs.FX.MovementFX
         protected virtual void WaitForDyingWishAnimation(BoardCard boardCard, BoardCard target, Vector3 dir)
         {
             boardCard.transform.DOMove(target.transform.position - dir.normalized * DYING_WISH_ANIMATION_OFFSET, DYING_WISH_ANIMATION_DURATION).WaitForCompletion();
-            // Vector3 targetPos = BoardSlot.Get(boardCard.GetCard().slot).transform.position;
-            // boardCard.StartCoroutine(MoveToPosition(boardCard, targetPos, DYING_WISH_ANIMATION_DURATION, DYING_WISH_ANIMATION_DELAY));
         }
         
         protected virtual IEnumerator DoAttackMoveWithKillAndNoDyingWish(BoardCard boardCard, BoardCard target, Vector3 currentPos, Vector3 dir)
