@@ -200,8 +200,7 @@ namespace TcgEngine.FX
         private void OnSecret(Card secret, Card triggerer)
         {
             CardData icard = CardData.Get(secret.cardID);
-            if (icard?.attackAudio != null)
-                AudioTool.Get().PlaySFX("card_secret", icard.attackAudio);
+            AudioTool.Get().PlaySFX("card_secret", icard.AttackAudio);
         }
 
         private void OnRoll(int value)
@@ -319,9 +318,8 @@ namespace TcgEngine.FX
                 
                 yield return WaitForAnimation(result.fxObject);
             }
-
-            AudioClip spawn_audio = icard.spawnAudio != null ? icard.spawnAudio : AssetData.Get().card_spawn_audio;
-            AudioTool.Get().PlaySFX("card_spell", spawn_audio);
+            
+            AudioTool.Get().PlaySFX("card_spell", icard.SpawnAudio);
         }
         
         private IEnumerator PlayTrapCardFX(GameObject prefab, Card card, CardData icard)
@@ -335,9 +333,8 @@ namespace TcgEngine.FX
             {
                 yield return WaitForAnimation(result.fxObject);
             }
-
-            AudioClip spawn_audio = icard.spawnAudio != null ? icard.spawnAudio : AssetData.Get().card_spawn_audio;
-            AudioTool.Get().PlaySFX("card_spell", spawn_audio);
+            
+            AudioTool.Get().PlaySFX("card_spell", icard.SpawnAudio);
         }
         
         private IEnumerator PlayFX(GameObject prefab, Vector3 position, AudioClip audioClip = null)

@@ -127,5 +127,42 @@ namespace TcgEngine
         {
             return 0; //Helps the AI know if this is a positive or negative ability effect (return 1, 0 or -1)
         }
+        
+        public virtual bool SlotIsEmptyAfterEffect(GameLogic logic, AbilityArgs args, Slot slot)
+        {
+            if (args.target == null)
+            {
+                return true;
+            }
+            else if (args.target is Card)
+            {
+                return SlotIsEmptyAfterEffectCardTarget(logic, args, slot);
+            }
+            else if (args.target is Player)
+            {
+                return SlotIsEmptyAfterEffectPlayerTarget(logic, args, slot);
+            }
+            else if (args.target is Slot)
+            {
+                return SlotIsEmptyAfterEffectSlotTarget(logic, args, slot);
+            }
+
+            return true;
+        }
+        
+        protected virtual bool SlotIsEmptyAfterEffectCardTarget(GameLogic logic, AbilityArgs args, Slot slot)
+        {
+            return true; //Override in effects that remove cards from slots
+        }
+        
+        protected virtual bool SlotIsEmptyAfterEffectSlotTarget(GameLogic logic, AbilityArgs args, Slot slot)
+        {
+            return true; //Override in effects that remove cards from slots
+        }
+        
+        protected virtual bool SlotIsEmptyAfterEffectPlayerTarget(GameLogic logic, AbilityArgs args, Slot slot)
+        {
+            return true; //Override in effects that remove cards from slots
+        }
     }
 }

@@ -152,7 +152,7 @@ namespace Monarchs.Board
         private void SpawnNewTrap(Card card)
         {
             Vector3 position = GetPositionFromCoordinate(card.GetCoordinates());
-            GameObject trap = card.CardData.trapOnGroundFX;
+            GameObject trap = card.CardData.TrapOnGroundFX;
             if (trap == null)
             {
                 trap = trapPrefab;

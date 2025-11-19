@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using Monarchs.Board;
+using Monarchs.FX;
 using Monarchs.Logic;
 using Sirenix.OdinInspector;
 using TcgEngine;

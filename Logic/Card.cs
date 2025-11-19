@@ -1052,6 +1052,20 @@ namespace Monarchs.Logic
         {
             addedAbilitiesSinceInPlayID.Add(ability.id);
         }
+        
+        public virtual bool SpawnsACardOnSlotWhenInDies(GameLogic logic, Slot targetSlot, Slot slotToVerify)
+        {
+            AbilityArgs args = new AbilityArgs(){ability = null, caster = this, target = targetSlot};
+            foreach (var ability in GetAllCurrentAbilities())
+            {
+                args.ability = ability;
+                if (ability.SpawnsACardOnSlotWhenInDies(logic, args, slotToVerify))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     [System.Serializable]

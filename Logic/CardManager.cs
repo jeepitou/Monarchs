@@ -310,7 +310,7 @@ namespace Monarchs.Logic
         /// <summary>
         /// Creates a new card and sends it to the board
         /// </summary>
-        public virtual Card SummonCard(int playerID, CardData cardData, VariantData variant, Slot slot, bool isSummoningCohort=false, string cohortUid = "")
+        public virtual Card SummonCard(int playerID, CardData cardData, VariantData variant, Slot slot, bool isSummoningCohort=false, string cohortUid = "", bool usingGameHelper=false)
         {
             if (!slot.IsValid())
                 return null;
@@ -319,6 +319,11 @@ namespace Monarchs.Logic
                 return null;
             
             Card card = SummonCardHand(playerID, cardData, variant, cohortUid);
+            if (usingGameHelper)
+            {
+                card.cohortSummon = true;
+            }
+            
             
             if (cohortUid != "")
             {

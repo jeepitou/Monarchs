@@ -151,6 +151,25 @@ namespace Monarchs.Logic
             //Damage Cards
             if (target != null)
             {
+                bool targetWillDie = attacker.GetAttack() >= target.GetHP() + target.GetArmor();
+                bool slotWillBeFree = !target.SpawnsACardOnSlotWhenInDies(_gameLogic, targetSlot, targetSlot);
+                
+                if (!rangedAttack && attacker.CanMove(true))
+                {
+                    if (!targetWillDie || !slotWillBeFree)
+                    {
+                        Vector2S fallbackSquare = attacker.GetCurrentMovementScheme()
+                            .GetClosestAvailableSquaresOnMoveTrajectory(attacker.GetCoordinates(),
+                                targetSlot.GetCoordinate(), _game)[0];
+                        attacker.slot = Slot.Get(fallbackSquare);
+                    }
+                    else
+                    {
+                        attacker.slot = targetSlot;
+                    }
+                }
+                
+                
                 cardManager.DamageCard(attacker, target, damage);    
             }
             
@@ -219,10 +238,20 @@ namespace Monarchs.Logic
 
             if (attacker.CardData.GetPieceType() == PieceType.Knight)
             {
-                Vector2S fallbackSquare = attacker.GetCurrentMovementScheme()
-                    .GetClosestAvailableSquaresOnMoveTrajectory(attacker.GetCoordinates(),
-                        targetSlot.GetCoordinate(),_game)[0];
-                _resolveQueue.AddMove(attacker, Slot.Get(fallbackSquare), (a, s, skip, exhaust) => boardManager.ForceMoveCard(a, s, skip, exhaust));
+                bool defenderIsOnBoard = _game.IsOnBoard(target);
+                if (defenderIsOnBoard)
+                {
+                    Vector2S fallbackSquare = attacker.GetCurrentMovementScheme()
+                        .GetClosestAvailableSquaresOnMoveTrajectory(attacker.GetCoordinates(),
+                            targetSlot.GetCoordinate(), _game)[0];
+                    _resolveQueue.AddMove(attacker, Slot.Get(fallbackSquare),
+                        (a, s, skip, exhaust) => boardManager.ForceMoveCard(a, s, skip, exhaust));
+                }
+                else
+                {
+                    _resolveQueue.AddMove(attacker, target.slot,
+                        (a, s, skip, exhaust) => boardManager.ForceMoveCard(a, s, skip, exhaust));
+                }
             }
             
             _resolveQueue.AddCallback(() => attacker.RemoveStatus(StatusType.Sabotage));

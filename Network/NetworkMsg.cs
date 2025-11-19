@@ -285,6 +285,8 @@ namespace TcgEngine
         public string casterUID;
         public string target_uid;
         public int VFX_Index;
+        public int slotX;
+        public int slotY;
         public bool isSelectTarget = false;
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
@@ -294,6 +296,8 @@ namespace TcgEngine
             serializer.SerializeValue(ref target_uid);
             serializer.SerializeValue(ref VFX_Index);
             serializer.SerializeValue(ref isSelectTarget);
+            serializer.SerializeValue(ref slotX);
+            serializer.SerializeValue(ref slotY);
         }
     }
 
