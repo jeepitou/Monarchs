@@ -118,7 +118,7 @@ public class PieceOnBoard : MonoBehaviour
         if (_card.HasTrait("incorporeal") && _incorporealEffect == null)
         {
             _incorporealEffect = new IncorporealBoardEffect();
-            _incorporealEffect.ApplyIncorporealEffect(pieceImage, baseModel, _card.OwnedByFirstPlayer(GameClient.GetGameData()));
+            _incorporealEffect.ApplyIncorporealEffect(transform, pieceImage, baseModel, _card.OwnedByFirstPlayer(GameClient.GetGameData()));
         }
         else if (!_card.HasTrait("incorporeal") && _incorporealEffect != null)
         {
@@ -163,6 +163,16 @@ public class PieceOnBoard : MonoBehaviour
         baseModel.GetComponent<MeshRenderer>().material = _normalMaterial;
         attackGemBaseModel.GetComponent<MeshRenderer>().material = _normalMaterial;
         hpGemBaseModel.GetComponent<MeshRenderer>().material = _normalMaterial;
+    }
+
+    public void StartIncorporealHoverEffect()
+    {
+        _incorporealEffect.StartHoverEffect(transform);
+    }
+    
+    public void StopIncorporealHoverEffect()
+    {
+        _incorporealEffect.StopHoverEffect();
     }
 
     public string GetCardUID()
