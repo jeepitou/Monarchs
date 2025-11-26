@@ -41,6 +41,7 @@ public class PieceOnBoard : MonoBehaviour
             return;
         piece_list.Remove(this);
         GameClient.Get().onCardTransformed -= OnCardTransform;
+        _incorporealEffect?.OnDestroy();
     }
     
     private void OnCardTransform(Card card)
@@ -135,22 +136,6 @@ public class PieceOnBoard : MonoBehaviour
             return;
         }
         RecursiveTransparent.SetTransparency(0.5f, gameObject);
-        // if (_card.OwnedByFirstPlayer(GameClient.GetGameData()))
-        // {
-        //     _normalMaterial = baseModel.GetComponent<MeshRenderer>().material;
-        //     baseModel.GetComponent<MeshRenderer>().material = whiteTransparentMaterial;
-        //     attackGemBaseModel.GetComponent<MeshRenderer>().material = whiteTransparentMaterial;
-        //     hpGemBaseModel.GetComponent<MeshRenderer>().material = whiteTransparentMaterial;
-        //     pieceImage.GetComponent<MeshRenderer>().material.color = new Color(1, 1, 1, 0.5f);
-        // }
-        // else
-        // {
-        //     _normalMaterial = baseModel.GetComponent<MeshRenderer>().material;
-        //     baseModel.GetComponent<MeshRenderer>().material = blackTransparentMaterial;
-        //     attackGemBaseModel.GetComponent<MeshRenderer>().material = blackTransparentMaterial;
-        //     hpGemBaseModel.GetComponent<MeshRenderer>().material = blackTransparentMaterial;
-        //     pieceImage.GetComponent<MeshRenderer>().material.color = new Color(1, 1, 1, 0.5f);
-        // }
     }
 
     public void ApplyNormalMaterial()
@@ -167,12 +152,12 @@ public class PieceOnBoard : MonoBehaviour
 
     public void StartIncorporealHoverEffect()
     {
-        _incorporealEffect.StartHoverEffect(transform);
+        _incorporealEffect?.StartHoverEffect(transform);
     }
     
     public void StopIncorporealHoverEffect()
     {
-        _incorporealEffect.StopHoverEffect();
+        _incorporealEffect?.StopHoverEffect();
     }
 
     public string GetCardUID()

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using Monarchs.FX;
 using UnityEngine;
 
 namespace Monarchs
@@ -11,13 +12,16 @@ namespace Monarchs
         private GameObject _pieceFrame;
         private float _incorporealHoverEffectHeight = 0.05f;
         private float _incorporealHoverEffectDuration = 1f;
-        bool _isWhite;
+        private bool _isWhite;
         private Tween _hoverTween;
-        private static Tween _masterTween;
+        private static YoyoLoopSyncMasterTween _masterTween;
         private float _incorporealHoverEffectAngle = 0; // Angle in degrees relative to camera forward (90 = up)
-        
-        // Start is called before the first frame update
 
+        public void OnDestroy()
+        {
+            StopHoverEffect();
+        }
+        
         public void ApplyIncorporealEffect(Transform transform, GameObject imagePlane, GameObject pieceFrame, bool isWhite)
         {
             _isWhite = isWhite;
@@ -27,25 +31,10 @@ namespace Monarchs
             _addedIncorporealPlane = GameObject.Instantiate(imagePlane, imagePlane.transform.position, imagePlane.transform.rotation, imagePlane.transform.parent);
             _addedIncorporealPlane.transform.Translate(0, 0, 0.01f);
             _addedIncorporealPlane.GetComponent<MeshRenderer>().material = material;
-            InitMasterTween(_incorporealHoverEffectDuration*2);
+            _masterTween = _masterTween == null ? new YoyoLoopSyncMasterTween(_incorporealHoverEffectDuration) : _masterTween;
             StartHoverEffect(transform);
         }
         
-        public static void InitMasterTween(float duration)
-        {
-            if (_masterTween == null || !_masterTween.IsActive())
-            {
-                float dummyValue = 0f;
-                _masterTween = DOTween.To(() => dummyValue, x => dummyValue = x, 1f, duration)
-                    .SetEase(Ease.Linear)
-                    .SetLoops(-1, LoopType.Restart);
-            }
-        }
-
-        public static float GetMasterElapsedPercentage()
-        {
-            return _masterTween != null ? _masterTween.ElapsedPercentage(false) : 0f;
-        }
         
         public void RemoveIncorporealEffect()
         {
@@ -71,14 +60,7 @@ namespace Monarchs
             Vector3 startPos = _addedIncorporealPlane.transform.position;
             Vector3 endPos = startPos + moveDir * _incorporealHoverEffectHeight;
 
-            float masterProgress = GetMasterElapsedPercentage();
-            float hoverDuration = _incorporealHoverEffectDuration;
-            float masterDuration = hoverDuration * 2f;
-            float localProgress = (masterProgress * masterDuration) % masterDuration;
-            bool reverse = localProgress > hoverDuration;
-            float tweenProgress = reverse ? (localProgress - hoverDuration) / hoverDuration : localProgress / hoverDuration;
-
-            if (reverse)
+            if (_masterTween.IsReverse())
             {
                 // Swap start and end for reverse direction
                 var temp = startPos;
@@ -86,11 +68,11 @@ namespace Monarchs
                 endPos = temp;
             }
 
-            _hoverTween = transform.DOMove(endPos, hoverDuration)
+            _hoverTween = transform.DOMove(endPos, _incorporealHoverEffectDuration)
                 .From(startPos)
                 .SetEase(Ease.InOutSine)
                 .SetLoops(-1, LoopType.Yoyo);
-            _hoverTween.Goto(tweenProgress * hoverDuration, true);
+            _hoverTween.Goto(_masterTween.GetElapsedPercentage() * _incorporealHoverEffectDuration, true);
         }
 
         public void StopHoverEffect()
