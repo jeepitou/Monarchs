@@ -13,8 +13,8 @@ namespace Monarchs.FX.MovementFX
     public class MovementFX
     {
         private const float DYING_WISH_ANIMATION_DELAY = 2f;
-        private const float DYING_WISH_ANIMATION_DURATION = 0.2f;
-        private const float DYING_WISH_ANIMATION_OFFSET = 0.8f;
+        protected const float DYING_WISH_ANIMATION_DURATION = 0.2f;
+        protected const float DYING_WISH_ANIMATION_OFFSET = 0.8f;
         protected KnightMovementFX _knightMovementFX;
         protected IncorporealMovementFX _incorporealMovementFX;
         
@@ -67,7 +67,7 @@ namespace Monarchs.FX.MovementFX
                 }
                 else if (target.GetCardData().HasAbility(AbilityTrigger.OnDeath))
                 {
-                    WaitForDyingWishAnimation(boardCard, target, dir);
+                    boardCard.StartCoroutine(WaitForDyingWishAnimation(boardCard, target, dir));
                 }
             }
         }
@@ -89,12 +89,12 @@ namespace Monarchs.FX.MovementFX
         protected virtual IEnumerator DoFallBackMove(BoardCard boardCard, BoardCard target)
         {
             Vector3 fallbackPos = BoardSlot.Get(boardCard.GetCard().slot).transform.position;
-            yield return boardCard.transform.DOMove(fallbackPos, 0.3f);
+            yield return boardCard.transform.DOMove(fallbackPos, 0.3f).WaitForCompletion();
         }
         
-        protected virtual void WaitForDyingWishAnimation(BoardCard boardCard, BoardCard target, Vector3 dir)
+        protected virtual IEnumerator WaitForDyingWishAnimation(BoardCard boardCard, BoardCard target, Vector3 dir)
         {
-            boardCard.transform.DOMove(target.transform.position - dir.normalized * DYING_WISH_ANIMATION_OFFSET, DYING_WISH_ANIMATION_DURATION).WaitForCompletion();
+            yield return boardCard.transform.DOMove(target.transform.position - dir.normalized * DYING_WISH_ANIMATION_OFFSET, DYING_WISH_ANIMATION_DURATION).WaitForCompletion();
         }
         
         protected virtual IEnumerator DoAttackMoveWithKillAndNoDyingWish(BoardCard boardCard, BoardCard target, Vector3 currentPos, Vector3 dir)
