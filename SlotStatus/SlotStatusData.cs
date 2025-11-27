@@ -43,7 +43,7 @@ public class SlotStatusData : ScriptableObject
         
         foreach (var status in statusArray)
         {
-            card.AddStatus(status, 1, -1);
+            card.AddStatus(new CardStatus(status.effect, 1, -1));
         }
     }
     
@@ -56,7 +56,7 @@ public class SlotStatusData : ScriptableObject
 
         foreach (var status in statusArray)
         {
-            card.AddStatus(status, 1, 1);
+            card.AddStatus(new CardStatus(status.effect, 1, 1));
         }
     }
     

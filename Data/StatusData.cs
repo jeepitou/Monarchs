@@ -52,6 +52,8 @@ namespace TcgEngine
     public class StatusData : ScriptableObject
     {
         public StatusType effect;
+        public string id;
+        public BuffOrStatus buffOrStatus;
 
         [Header("Display")]
         public string title;
@@ -99,10 +101,26 @@ namespace TcgEngine
             }
             return null;
         }
+        
+        public static StatusData Get(string id)
+        {
+            foreach (StatusData status in GetAll())
+            {
+                if (status.id == id)
+                    return status;
+            }
+            return null;
+        }
 
         public static List<StatusData> GetAll()
         {
             return status_list;
+        }
+
+        public enum BuffOrStatus
+        {
+            Buff,
+            Status
         }
     }
 }

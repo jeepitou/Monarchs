@@ -300,7 +300,7 @@ namespace Monarchs.Ability
             if (args.target is Card)
             {
                 foreach(StatusData stat in status)
-                    args.CardTarget.AddStatus(stat, value, duration);
+                    args.CardTarget.AddStatus(new CardStatus(stat.effect, value, duration));
             }
         }
 
@@ -329,7 +329,7 @@ namespace Monarchs.Ability
                 {
                     if (target is Card)
                     {
-                        args.CardTarget.AddStatus(status.status, value, duration);
+                        args.CardTarget.AddStatus(new CardStatus(status.status.effect, value, duration));
                     }
                 }
             }
@@ -397,7 +397,7 @@ namespace Monarchs.Ability
             if (args.target is Card)
             {
                 foreach(StatusData stat in status)
-                    args.CardTarget.AddStatus(stat.effect, value, duration, args.castedCard);
+                    args.CardTarget.AddStatus(new CardStatus(stat.effect, value, duration, args.castedCard.uid));
             }
         }
 

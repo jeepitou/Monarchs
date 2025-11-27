@@ -93,8 +93,9 @@ namespace Monarchs
                 GameObject g = Instantiate(cardInfoBoxPrefab, statusLineParent.transform);
                 _statusLines.Add(g.GetComponent<CardInfoBox>());
                     
-                    
-                StatusData istatus = StatusData.Get(status.type);
+                
+                StatusData istatus = status.type != StatusType.None ?
+                    StatusData.Get(status.type) : StatusData.Get(status.id);
                 if (istatus != null && !string.IsNullOrWhiteSpace(istatus.desc))
                 {
                     int ival = Mathf.Max(status.value, Mathf.CeilToInt(status.duration / 2f));

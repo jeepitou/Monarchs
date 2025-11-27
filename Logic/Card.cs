@@ -542,7 +542,7 @@ namespace Monarchs.Logic
             traits.SetTrait(id, value);
         }
 
-        public void AddTrait(string id, int value)
+        public void AddTrait(string id, int value, int duration = -1)
         {
             traits.AddTrait(id, value);
         }
@@ -626,12 +626,6 @@ namespace Monarchs.Logic
 
         //------  Status Effects ---------
 
-        public void AddStatus(StatusData status, int value, int duration)
-        {
-            if (status != null)
-                AddStatus(status.effect, value, duration);
-        }
-
         public void AddOngoingStatus(StatusData status, int value)
         {
             if (status != null)
@@ -674,14 +668,19 @@ namespace Monarchs.Logic
             }
         }
 
-        public void AddStatus(StatusType type, int value, int duration, Card statusApplier = null, bool removeOnApplierTurn = false)
+        public void AddStatus(StatusType type, int value, int duration)
         {
-            status.AddStatus(type, value, duration);
+            AddStatus(new CardStatus(type, value, duration));
+        }
+
+        public void AddStatus(CardStatus newStatus)
+        {
+            status.AddStatus(newStatus);
         }
 
         public void AddOngoingStatus(StatusType type, int value)
         {
-            ongoingStatus.AddStatus(type, value, 0);
+            ongoingStatus.AddStatus(new CardStatus(type, value, 0));
         }
 
         public void RemoveStatus(StatusType type)
@@ -693,6 +692,11 @@ namespace Monarchs.Logic
         {
             return status.GetStatus(type);
         }
+        
+        public CardStatus GetStatus(string id)
+        {
+            return status.GetStatus(id);
+        }
 
         public CardStatus GetOngoingStatus(StatusType type)
         {
@@ -702,6 +706,11 @@ namespace Monarchs.Logic
         public bool HasStatus(StatusType type)
         {
             return status.Exists(s => s.type == type) || ongoingStatus.Exists(s => s.type == type);
+        }
+        
+        public bool HasStatus(string id)
+        {
+            return status.Exists(s => s.id == id) || ongoingStatus.Exists(s => s.id == id);
         }
         
         public bool HasTrait(string id)
@@ -725,14 +734,14 @@ namespace Monarchs.Logic
             return v1 + v2;
         }
 
-        public virtual void ReduceStatusDurations(List<Card> currentTurns)
+        public virtual void ReduceStatusDurations(bool isBeginningOfTurn)
         {
             for (int i = status.Count - 1; i >= 0; i--)
             {
                 if (!status[i].permanent)
                 {
-                    if ((status[i].isRemovedOnApplierTurn && CheckForUIDInCardList(currentTurns, status[i].applierUID)!=null) ||
-                        (!status[i].isRemovedOnApplierTurn) && currentTurns.Contains(this))
+                    if ((status[i].removeAtBeginningOfTurn && isBeginningOfTurn) ||
+                        (!status[i].removeAtBeginningOfTurn && !isBeginningOfTurn))
                     {
                         status[i].duration -= 1;
                         if (status[i].duration <= 0)
@@ -1072,23 +1081,25 @@ namespace Monarchs.Logic
     public class CardStatus : ChessTCG.Logic.IClonable<CardStatus>
     {
         public StatusType type;
+        public string id;
+        public string applierUID;
         public int value;
         public int duration = 1;
         public bool permanent = true;
-        public string applierUID;
-        public bool isRemovedOnApplierTurn = false;
+        public bool removeAtBeginningOfTurn = false;
 
         [System.NonSerialized]
         private StatusData _data = null;
 
-        public CardStatus(StatusType type, int value, int duration, Card applier = null, bool isRemovedOnApplierTurn = false)
+        public CardStatus(StatusType type, int value, int duration, string id= "", string applier = "", bool removeAtBeginningOfTurn = false)
         {
             this.type = type;
             this.value = value;
             this.duration = duration;
+            this.id = id;
+            this.applierUID = applier;
             this.permanent = (duration == 0);
-            this.applierUID = applier?.uid;
-            this.isRemovedOnApplierTurn = isRemovedOnApplierTurn;
+            this.removeAtBeginningOfTurn = removeAtBeginningOfTurn;
         }
 
         public StatusData StatusData { 
