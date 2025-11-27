@@ -17,7 +17,8 @@ namespace TcgEngine
     public class EffectAddUniqueStatus : EffectData
     {
         public StatusType type;
-        public bool removeOnApplierTurn = false;
+        public string statusID;
+        public bool removeAtBeginningOfTurn = false;
 
         public override void DoEffectCardTarget(GameLogic logic, AbilityArgs args)
         {
@@ -26,11 +27,8 @@ namespace TcgEngine
             Card target = (Card) args.target;
 
             int duration = args.ability.duration;
-            if (removeOnApplierTurn && duration != 0)
-            {
-                duration++; // Otherwise the status is removed directly when we finish the caster turn instead of on its next turn.
-            }
-            target.AddStatus(type, args.ability.value, duration, args.caster, removeOnApplierTurn);
+            
+            target.AddStatus(new CardStatus(type, args.ability.value, duration, id: statusID, applier:args.caster.uid, removeAtBeginningOfTurn));
             
         }
         
@@ -40,7 +38,7 @@ namespace TcgEngine
             {
                 foreach (var card in player.cards_board)
                 {
-                    if (card.HasStatus(type) && card.GetStatus(type).applierUID == caster.uid)
+                    if (card.HasStatus(statusID) && card.GetStatus(statusID).applierUID == caster.uid)
                     {
                         card.RemoveStatus(type);
                         return;

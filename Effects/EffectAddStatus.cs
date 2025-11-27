@@ -15,20 +15,20 @@ namespace TcgEngine
     [CreateAssetMenu(fileName = "effect", menuName = "TcgEngine/Effect/AddStatus")]
     public class EffectAddStatus : EffectData
     {
-        public StatusType type;
-        public bool removeOnApplierTurn = false;
+        public bool customStatus = false;
+        [HideIf("customStatus")] public StatusType type;
+        [ShowIf("customStatus")] public StatusData statusData;
+        public bool removeAtBeginningOfTurn = false;
+        public string statusID;
 
         public override void DoEffectCardTarget(GameLogic logic, AbilityArgs args)
         {
             Card target = (Card) args.target;
 
             int duration = args.ability.duration;
-            if (removeOnApplierTurn && duration != 0)
-            {
-                duration++; // Otherwise the status is removed directly when we finish the caster turn instead of on its next turn.
-            }
-            target.AddStatus(type, args.ability.value, duration, args.caster, removeOnApplierTurn);
+            StatusType statusType = customStatus ? statusData.effect : type;
             
+            target.AddStatus(new CardStatus(statusType, args.ability.value, duration, id:statusID, applier:args.caster.uid, removeAtBeginningOfTurn));
         }
     }
 }
