@@ -104,6 +104,11 @@ namespace TcgEngine
         
         public static StatusData Get(string id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+            
             foreach (StatusData status in GetAll())
             {
                 if (status.id == id)

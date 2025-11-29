@@ -157,31 +157,6 @@ namespace Monarchs.Logic
             {
                 _gameLogic.onRoundStart?.Invoke();
             }
-
-            // foreach (var player in _game.players)
-            // {
-            //     // Draw cards for the new round
-            //     cardManager.DrawCard(player.playerID, GameplayData.Get().cards_per_turn);
-            //     player.playerMana.AddGeneratingMana();
-            //     
-            //     // Refresh Cards and process status effects
-            //     for (int i = player.cards_board.Count - 1; i >= 0; i--)
-            //     {
-            //         Card card = player.cards_board[i];
-            //         card.playedCardThisRound = false;
-            //         card.canRetaliate = true;
-            //         card.numberOfMoveThisTurn = 0;
-            //         card.hasAttacked = false;
-            //
-            //         if(!card.HasStatus(StatusType.Sleep))
-            //             card.Refresh();
-            //
-            //         if (card.HasStatus(StatusType.Poisoned))
-            //             cardManager.DamageCard(card, card.GetStatusValue(StatusType.Poisoned));
-            //     }
-            //     
-            //     _abilityLogicSystem.TriggerAllAbilityWithTriggerTypeOfPlayer(player, AbilityTrigger.StartOfRound);
-            // }
             
             // Initialize turn timer
             _game.turnTimer = GameplayData.Get().turn_duration;
@@ -241,9 +216,9 @@ namespace Monarchs.Logic
                     cardManager.DamageCard(card, card.GetStatusValue(StatusType.Poisoned));
                 
                 card.ReduceStatusDurations(true);
-
-                _abilityLogicSystem.TriggerAllAbilityWithTriggerTypeOfPlayer(activePlayer, AbilityTrigger.StartOfRound);
             }
+            
+            _abilityLogicSystem.TriggerAllAbilityWithTriggerTypeOfPlayer(activePlayer, AbilityTrigger.StartOfRound);
             
             _resolveQueue.AddCallback(() => StartPlayPhase(cardManager));
             _resolveQueue.ResolveAll(0.2f);

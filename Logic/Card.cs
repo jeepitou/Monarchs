@@ -542,7 +542,7 @@ namespace Monarchs.Logic
             traits.SetTrait(id, value);
         }
 
-        public void AddTrait(string id, int value, int duration = -1)
+        public void AddTrait(string id, int value)
         {
             traits.AddTrait(id, value);
         }
@@ -1091,7 +1091,7 @@ namespace Monarchs.Logic
         [System.NonSerialized]
         private StatusData _data = null;
 
-        public CardStatus(StatusType type, int value, int duration, string id= "", string applier = "", bool removeAtBeginningOfTurn = false)
+        public CardStatus(StatusType type, int value, int duration, string id = "", string applier = "", bool removeAtBeginningOfTurn = false)
         {
             this.type = type;
             this.value = value;

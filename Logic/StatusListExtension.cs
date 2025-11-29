@@ -19,7 +19,7 @@ public static class StatusListExtension
         var status = newStatus.type == StatusType.None ? statuses.GetStatus(newStatus.id) : statuses.GetStatus(newStatus.type);
         if (status != null)
         {
-            status.value = newStatus.value;
+            status.value += newStatus.value;
             status.duration = newStatus.duration;
             status.removeAtBeginningOfTurn = newStatus.removeAtBeginningOfTurn;
             status.id = newStatus.id;

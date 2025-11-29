@@ -28,7 +28,7 @@ namespace TcgEngine
             int duration = args.ability.duration;
             StatusType statusType = customStatus ? statusData.effect : type;
             
-            target.AddStatus(new CardStatus(statusType, args.ability.value, duration, id:statusID, applier:args.caster.uid, removeAtBeginningOfTurn));
+            target.AddStatus(new CardStatus(statusType, args.ability.value, duration, id: statusID, applier: args.caster.uid, removeAtBeginningOfTurn));
         }
     }
 }
