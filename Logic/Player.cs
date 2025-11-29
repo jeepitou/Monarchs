@@ -338,12 +338,12 @@ namespace Monarchs.Logic
 
         public void AddStatus(StatusType effect, int value, int duration)
         {
-            status_effects.AddStatus(effect, value, duration);
+            status_effects.AddStatus(new CardStatus(effect, value, duration));
         }
 
         public void AddOngoingStatus(StatusType effect, int value)
         {
-            ongoing_status.AddStatus(effect, value, 0);
+            ongoing_status.AddStatus(new CardStatus(effect, value, 0));
         }
 
         public void RemoveStatus(StatusType effect)
