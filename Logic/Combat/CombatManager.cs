@@ -151,8 +151,8 @@ namespace Monarchs.Logic
             //Damage Cards
             if (target != null)
             {
-                bool targetWillDie = attacker.GetAttack() >= target.GetHP() + target.GetArmor();
-                bool slotWillBeFree = !target.SpawnsACardOnSlotWhenInDies(_gameLogic, targetSlot, targetSlot);
+                bool targetWillDie = damage >= target.GetHP() + target.GetArmor();
+                 bool slotWillBeFree = !target.SpawnsACardOnSlotWhenInDies(_gameLogic, targetSlot, targetSlot);
                 
                 if (!rangedAttack && attacker.CanMove(true))
                 {

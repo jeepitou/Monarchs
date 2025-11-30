@@ -32,7 +32,7 @@ namespace TcgEngine
         Silenced = 30,      //All abilities canceled
         Stunned = 32,     //Cant do any actions for X turns
         Immobilize = 33,    //Cant move, can still play card, and attack on melee. Won't move if it kills a card
-        Poisoned = 34,     //Lose hp each start of turn
+        Poison = 34,     //Lose hp each start of turn
         Sleep = 36,         //Doesnt untap at the start of turn
         Disarmed = 37,       //Cannot attack during it's turn
         ImpendingDoom = 38,   //Target takes double damage from all source
