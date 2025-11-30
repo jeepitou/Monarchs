@@ -212,8 +212,8 @@ namespace Monarchs.Logic
                 if(!card.HasStatus(StatusType.Sleep))
                     card.Refresh();
 
-                if (card.HasStatus(StatusType.Poisoned))
-                    cardManager.DamageCard(card, card.GetStatusValue(StatusType.Poisoned));
+                if (card.HasStatus(StatusType.Poison))
+                    cardManager.DamageCard(card, 1);
                 
                 card.ReduceStatusDurations(true);
             }
@@ -305,16 +305,13 @@ namespace Monarchs.Logic
             }
             
             List<Card> currentCardTurn = _game.GetCurrentCardTurn();
+            Player activePlayer = _game.GetActivePlayer();
             
-            // Process statuses and charges for all cards
-            foreach (var player in _game.players)
+            foreach (var card in activePlayer.cards_board)
             {
-                foreach (var card in player.cards_board)
-                {
-                    card.RemoveCharge();
-                    card.ReduceStatusDurations(false);
-                    card.wasPlayedThisTurn = false;
-                }
+                card.RemoveCharge();
+                card.ReduceStatusDurations(false);
+                card.wasPlayedThisTurn = false;
             }
             
             // Process "on remove status" effects

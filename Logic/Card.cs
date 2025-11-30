@@ -220,7 +220,7 @@ namespace Monarchs.Logic
         }
 
         public virtual int GetInitiative() { return GetCardData().initiative;}
-
+        
         public virtual int GetAttack()
         {
             return Math.Max(attack + attackOngoing, 1);

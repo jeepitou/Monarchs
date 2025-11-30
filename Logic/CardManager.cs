@@ -467,6 +467,11 @@ namespace Monarchs.Logic
             if (target == null)
                 return;
 
+            if (target.HasStatus(StatusType.Poison))
+            {
+                target.RemoveStatus(StatusType.Poison);
+            }
+
             if (target.HasStatus(StatusType.Invincibility))
                 return;
 
