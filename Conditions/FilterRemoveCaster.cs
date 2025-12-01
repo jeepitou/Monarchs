@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Monarchs.Ability;
 using Monarchs.Logic;
 using UnityEngine;
@@ -14,27 +14,14 @@ namespace TcgEngine
     {
         public override List<Card> FilterTargets(Game data, AbilityData ability, Card caster, List<Card> source, List<Card> dest)
         {
-            foreach (var card in source)
-            {
-                if (card.uid != caster.uid)
-                {
-                    dest.Add(card);
-                }
-            }
+            dest.AddRange(source.Where(card => card.uid != caster.uid));
             return dest;
         }
 
         public override List<Slot> FilterTargets(Game data, AbilityData ability, Card caster, List<Slot> source, List<Slot> dest)
         {
             Slot casterSlot = caster.slot;
-            foreach (var slot in source)
-            {
-                if (slot != casterSlot)
-                {
-                    dest.Add(slot);
-                }
-            }
-
+            dest.AddRange(source.Where(slot => slot != casterSlot));
             return dest;
         }
     }
