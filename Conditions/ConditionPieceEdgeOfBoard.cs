@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace TcgEngine
 {
-
+    /// <summary>
+    /// This condition checks if the piece is at the edge of the board. It can check for flanks, front/back rank, ally edge, or opponent edge.
+    /// </summary>
     [CreateAssetMenu(fileName = "condition", menuName = "TcgEngine/Condition/ConditionPieceEdgeOfBoard", order = 10)]
     public class ConditionPieceEdgeOfBoard : ConditionData
     {
