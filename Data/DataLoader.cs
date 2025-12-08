@@ -15,6 +15,7 @@ namespace TcgEngine
     {
         public GameplayData data;
         public AssetData assets;
+        public MovementPieceTypeLink movementPieceTypeLink;
 
         private HashSet<string> card_ids = new HashSet<string>();
         private HashSet<string> ability_ids = new HashSet<string>();

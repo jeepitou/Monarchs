@@ -32,7 +32,7 @@ public class ConditionSlotOnMovementScheme : ConditionData
         {
             cardToCheckFrom = ((Card)data.selectorTargets[checkFromTargetNumber - 1]);
         }
-        if (overwriteMovementScheme==null && cardToCheckFrom.CardData.MovementScheme == null)
+        if (overwriteMovementScheme==null && cardToCheckFrom.GetCurrentMovementScheme() == null)
         {
             return false;
         }
@@ -49,7 +49,7 @@ public class ConditionSlotOnMovementScheme : ConditionData
         }
         else
         {
-            movementScheme = cardToCheckFrom.CardData.MovementScheme;
+            movementScheme = cardToCheckFrom.GetCurrentMovementScheme();
         }
 
         Vector2S[] legalMoves;

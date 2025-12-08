@@ -8,14 +8,43 @@ using UnityEngine;
 public class MovementPieceTypeLink : ScriptableObject
 {
     [SerializeField]
-    private typeLinkedToMovementScheme[] _typeLinkedToMovementScheme = null;
+    private TypeLinkedToMovementScheme[] _typeLinkedToMovementScheme = null;
     [SerializeField]
     private MovementScheme _monarchMovementScheme;
     
     private Dictionary<PieceType, MovementScheme> movementDictionary;
     private Dictionary<MovementScheme, PieceType> typeDictionary;
+
+    public static MovementPieceTypeLink Get()
+    {
+        var dataLoader = DataLoader.Get();
+        if (dataLoader == null)
+        {
+            Debug.LogError("DataLoader is not initialized. MovementPieceTypeLink.Get() called before DataLoader.Awake().");
+            return null;
+        }
+        return dataLoader.movementPieceTypeLink;
+    }
     
+    public MovementScheme GetMovementScheme(PieceType pieceType)
+    {
+        if (movementDictionary == null)
+        {
+            GenerateDictionary();
+        }
+        
+        return movementDictionary[pieceType];
+    }
     
+    public PieceType GetType(MovementScheme movementScheme)
+    {
+        if (typeDictionary == null)
+        {
+            GenerateDictionary();
+        }
+        
+        return typeDictionary[movementScheme];
+    }
     
     public MovementScheme GetMovementScheme(Card card)
     {
@@ -75,7 +104,7 @@ public class MovementPieceTypeLink : ScriptableObject
     }
     
     [System.Serializable]
-    public struct typeLinkedToMovementScheme
+    public struct TypeLinkedToMovementScheme
     {
         public MovementScheme movementScheme;
         public PieceType pieceType;

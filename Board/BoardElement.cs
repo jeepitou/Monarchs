@@ -14,6 +14,7 @@ namespace Monarchs.Board
         public UnityAction onKill;
         public bool promoted;
         
+        
         protected string _cardUID = "";
         protected bool _destroyed;
         protected bool _focus;

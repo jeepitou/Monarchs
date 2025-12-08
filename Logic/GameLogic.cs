@@ -502,6 +502,11 @@ namespace Monarchs.Logic
         {
             _cardManager.ChangeOwner(card, newOwner);
         }
+        
+        public virtual void ChangeMovementScheme(Card card, MovementScheme newScheme)
+        {
+            _cardManager.ChangeMovementScheme(card, newScheme);
+        }
 
         /// <summary>
         /// Resurrects a card from discard pile
