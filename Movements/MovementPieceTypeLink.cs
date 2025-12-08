@@ -8,7 +8,7 @@ using UnityEngine;
 public class MovementPieceTypeLink : ScriptableObject
 {
     [SerializeField]
-    private typeLinkedToMovementScheme[] _typeLinkedToMovementScheme = null;
+    private TypeLinkedToMovementScheme[] _typeLinkedToMovementScheme = null;
     [SerializeField]
     private MovementScheme _monarchMovementScheme;
     
@@ -17,7 +17,13 @@ public class MovementPieceTypeLink : ScriptableObject
 
     public static MovementPieceTypeLink Get()
     {
-        return DataLoader.Get().movementPieceTypeLink;
+        var dataLoader = DataLoader.Get();
+        if (dataLoader == null)
+        {
+            Debug.LogError("DataLoader is not initialized. MovementPieceTypeLink.Get() called before DataLoader.Awake().");
+            return null;
+        }
+        return dataLoader.movementPieceTypeLink;
     }
     
     public MovementScheme GetMovementScheme(PieceType pieceType)
@@ -98,7 +104,7 @@ public class MovementPieceTypeLink : ScriptableObject
     }
     
     [System.Serializable]
-    public struct typeLinkedToMovementScheme
+    public struct TypeLinkedToMovementScheme
     {
         public MovementScheme movementScheme;
         public PieceType pieceType;
