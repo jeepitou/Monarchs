@@ -8,8 +8,8 @@ namespace Monarchs.Initiative
     public class InitiativeManager
     {
         protected InitiativeOrder InitiativeOrder {get; set;}
-        protected InitiativeTurnUtil InitiativeTurnUtil {get; set;}
-        protected InitiativeAmbush InitiativeAmbush {get; set;}
+        [field: NonSerialized]protected InitiativeTurnUtil InitiativeTurnUtil {get; set;}
+        [field: NonSerialized]protected InitiativeAmbush InitiativeAmbush {get; set;}
         
         public InitiativeManager()
         {

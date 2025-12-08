@@ -6,7 +6,7 @@ namespace Monarchs.Initiative
 {
     [Serializable]
     public class InitiativeTurnUtil
-    {
+    { 
         protected virtual InitiativeManager InitiativeManager { get; set; }
         public virtual int CurrentIndex { get; protected set; }
         public virtual bool RoundOver { get; protected set; } = false;

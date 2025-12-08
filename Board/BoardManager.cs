@@ -77,9 +77,11 @@ namespace Monarchs.Board
                 foreach (Card card in p.cards_board)
                 {
                     BoardElement boardCard = BoardElement.Get(card.uid);
+                    bool promotedChanged = card.promoted && !boardCard?.promoted == true;
+                    bool movementChanged = card.GetCurrentMovementScheme() != ((BoardCard)boardCard)?.movementScheme;
                     if (boardCard == null)
                         SpawnNewPiece(card);
-                    else if (card.promoted && !boardCard.promoted)
+                    else if (promotedChanged || movementChanged)
                     {
                         Destroy(boardCard.gameObject);
                         SpawnNewPiece(card, true);
@@ -147,6 +149,7 @@ namespace Monarchs.Board
             pieceGameObject.GetComponent<PieceOnBoard>().SetPiece(card);
             pieceGameObject.GetComponent<BoardCard>().SetCard(card);
             pieceGameObject.GetComponent<BoardCard>().promoted = promoted;
+            pieceGameObject.GetComponent<BoardCard>().movementScheme = card.GetCurrentMovementScheme();
         }
     
         private void SpawnNewTrap(Card card)

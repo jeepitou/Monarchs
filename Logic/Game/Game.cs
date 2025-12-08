@@ -235,7 +235,7 @@ namespace Monarchs.Logic
         public List<Vector2S> GetLegalMeleeAttacks(Card attacker)
         {
             List<Vector2S> legalMeleeAttacks = new List<Vector2S>();
-            MovementScheme movementScheme = attacker.CardData.MovementScheme;
+            MovementScheme movementScheme = attacker.GetCurrentMovementScheme();
             return movementScheme.GetLegalMeleeAttack(attacker.GetCoordinates(), 
                 attacker.GetMoveRange(), 
                 attacker.CanJump(), 
@@ -260,7 +260,7 @@ namespace Monarchs.Logic
                     continue;
                 }
                     
-                MovementScheme movementScheme = attacker.CardData.MovementScheme;
+                MovementScheme movementScheme = attacker.GetCurrentMovementScheme();
                 bool canAttackGround = attacker.HasTrait("can_range_attack_ground") || showEmptySquare;
                 bool indirectFire = attacker.HasTrait("indirect_fire");
             

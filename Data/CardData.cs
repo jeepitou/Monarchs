@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Monarchs;
@@ -46,7 +45,7 @@ namespace TcgEngine
     /// </summary>
 
     [CreateAssetMenu(fileName = "card", menuName = "TcgEngine/CardData", order = 5)]
-    public class CardData : ScriptableObject, ITargetable, ICard
+    public class CardData : ScriptableObject, ICard
     {
         public string id;
 

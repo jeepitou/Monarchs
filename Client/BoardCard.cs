@@ -36,6 +36,7 @@ namespace Monarchs.Client
         public Text statusText;
 
         public AbilityButton[] buttons;
+        public MovementScheme movementScheme = null;
 
         [Required][FormerlySerializedAs("outlineManager")] public CurrentPieceHighlightManager highlightManager;
         

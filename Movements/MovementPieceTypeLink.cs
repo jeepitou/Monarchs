@@ -14,8 +14,31 @@ public class MovementPieceTypeLink : ScriptableObject
     
     private Dictionary<PieceType, MovementScheme> movementDictionary;
     private Dictionary<MovementScheme, PieceType> typeDictionary;
+
+    public static MovementPieceTypeLink Get()
+    {
+        return DataLoader.Get().movementPieceTypeLink;
+    }
     
+    public MovementScheme GetMovementScheme(PieceType pieceType)
+    {
+        if (movementDictionary == null)
+        {
+            GenerateDictionary();
+        }
+        
+        return movementDictionary[pieceType];
+    }
     
+    public PieceType GetType(MovementScheme movementScheme)
+    {
+        if (typeDictionary == null)
+        {
+            GenerateDictionary();
+        }
+        
+        return typeDictionary[movementScheme];
+    }
     
     public MovementScheme GetMovementScheme(Card card)
     {

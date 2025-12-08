@@ -47,6 +47,7 @@ namespace Monarchs.Logic
         public bool promoted = false;
         public bool wasPlayedThisTurn = false;
         public int cohortSize = 1;
+        private PieceType? _overridePieceType = null;
         public string CohortUid { get; private set; }
         public int numberOfCohortUnitDied = 0;
         public Card parentCard = null;
@@ -146,6 +147,11 @@ namespace Monarchs.Logic
                 }
             }
             return SelectorType.None;
+        }
+        
+        public virtual void OverrideMovementScheme(MovementScheme movementScheme)
+        {
+            _overridePieceType = MovementPieceTypeLink.Get().GetType(movementScheme);
         }
 
 
@@ -344,6 +350,11 @@ namespace Monarchs.Logic
 
         public PieceType GetPieceType()
         {
+            if (_overridePieceType != null)
+            {
+                return _overridePieceType.Value;
+            }
+            
             if (CardData.type == PieceType.Pawn && promoted)
             {
                 MovementPieceTypeLink pieceTypeLink = GameplayData.Get().MovementPieceTypeLink;
@@ -493,6 +504,11 @@ namespace Monarchs.Logic
 
         public MovementScheme GetCurrentMovementScheme()
         {
+            if (_overridePieceType != null)
+            {
+                return MovementPieceTypeLink.Get().GetMovementScheme(_overridePieceType.Value);
+            }
+            
             if (promoted)
             {
                 return CardData.promoteMovementScheme;
@@ -503,7 +519,7 @@ namespace Monarchs.Logic
 
         public Vector2S[] GetLegalMoves(Game game, bool canTargetAlly = false)
         {
-            return CardData.MovementScheme.GetLegalMoves(
+            return GetCurrentMovementScheme().GetLegalMoves(
                 slot.GetCoordinate(), 
                 GetMoveRange(), 
                 CanJump(), 
@@ -514,7 +530,7 @@ namespace Monarchs.Logic
 
         public Vector2S[] GetLegalMovesFromSlot(Slot _slot, Game game, bool canTargetAlly = false)
         {
-            return CardData.MovementScheme.GetLegalMoves(
+            return GetCurrentMovementScheme().GetLegalMoves(
                 _slot.GetCoordinate(), 
                 GetMoveRange(), 
                 CanJump(), 

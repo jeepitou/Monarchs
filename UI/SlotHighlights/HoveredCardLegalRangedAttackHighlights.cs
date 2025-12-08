@@ -53,7 +53,7 @@ namespace Monarchs
                 return;
             }
             
-            _possibleRangeAttack = BoardSlot.GetBoardSlotsFromCoordinates(draggedCard.CardData.MovementScheme.GetLegalRangedAttack(slot.GetCoordinate(),
+            _possibleRangeAttack = BoardSlot.GetBoardSlotsFromCoordinates(draggedCard.GetCurrentMovementScheme().GetLegalRangedAttack(slot.GetCoordinate(),
                 draggedCard.CardData.minAttackRange, draggedCard.GetMaxAttackRange(),
                 draggedCard.playerID, GameClient.GetGameData(), true, true, true).ToArray());
             

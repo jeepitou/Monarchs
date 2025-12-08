@@ -17,10 +17,10 @@ namespace Ability.Target
 
             List<ITargetable> targets = memoryArray.Get();
             
-            foreach (CardData card in CardData.GetAll())
-            {
-                targets.Add(card);
-            }
+            // foreach (CardData card in CardData.GetAll())
+            // {
+            //     targets.Add(card);
+            // }
 
             return targets;
         }

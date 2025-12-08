@@ -412,6 +412,12 @@ namespace Monarchs.Logic
                 _gameLogic.onCardTransformed?.Invoke(card);
             }
         }
+        
+        public void ChangeMovementScheme(Card card, MovementScheme newScheme)
+        {
+            card.OverrideMovementScheme(newScheme);
+            _gameLogic.onCardTransformed?.Invoke(card);
+        }
 
         /// <summary>
         /// Breaks a cohort when a card changes owner
@@ -676,5 +682,7 @@ namespace Monarchs.Logic
         }
         
         #endregion
+
+        
     }
 }
