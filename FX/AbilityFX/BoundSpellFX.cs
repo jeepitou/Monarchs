@@ -18,17 +18,14 @@ namespace Monarchs
         {
             GameClient.Get().onAbilitySummonedCardToHand += OnAbilitySummonedCardToHand;
         }
-
-        private void OnDestroy()
-        {
-            GameClient.Get().onAbilitySummonedCardToHand -= OnAbilitySummonedCardToHand;
-        }
-
+        
         // The OnAbilitySummonedCardToHand method is triggered when a card is summoned to the hand.
         // It creates a new card object, updates the game state, and queues animations for the card's movement.
         // The behavior differs based on whether the caster is the local player or an opponent.
         private void OnAbilitySummonedCardToHand(string uid, string id)
         {
+            GameClient.Get().onAbilitySummonedCardToHand -= OnAbilitySummonedCardToHand;
+            HandCardArea.CardMovingToHandCount++;
             RectTransform rectTransform = BoardCard.Get(_abilityArgs.caster.uid).GetComponent<RectTransform>();
             CardData cardData = CardData.Get(id);
             
@@ -39,9 +36,7 @@ namespace Monarchs
             }
 
             Card card = Card.Create(cardData, _abilityArgs.caster.VariantData, _abilityArgs.caster.playerID, uid);
-            Game game = GameClient.GetGameData();
-            game.players[card.playerID].cards_all[card.uid] = card;
-            game.players[card.playerID].cards_hand.Add(card);
+            
 
             if (_abilityArgs.caster.playerID == GameClient.Get().GetPlayerID())
             {
@@ -58,6 +53,7 @@ namespace Monarchs
         // The Destroy method is a coroutine that destroys the game object after completing its tasks.
         private IEnumerator Destroy()
         {
+            
             Destroy(gameObject);
             yield break ;
         }
