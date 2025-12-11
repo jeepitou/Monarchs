@@ -226,6 +226,9 @@ namespace TcgEngine
         }
     }
     
+    /// <summary>
+    /// This message is used when a card is summoned to hand, containing both its unique identifier and its card ID.
+    /// </summary>
     public class MsgCardWithID : INetworkSerializable
     {
         public string cardUID;
@@ -238,8 +241,6 @@ namespace TcgEngine
         }
     }
     
-    
-
     public class MsgPlayer : INetworkSerializable
     {
         public int playerID;

@@ -47,9 +47,6 @@ namespace Monarchs.Client
         public IEnumerator AddCardToHandRoutine(Card card, float delay)
         {
             yield return new WaitForSeconds(delay);
-            // Game game = GameClient.GetGameData();
-            // game.players[card.playerID].cards_all[card.uid] = card;
-            // game.players[card.playerID].cards_hand.Add(card);
             HandCardArea.CardMovingToHandCount--;
             HandCardArea.Get().RefreshHand();
         }

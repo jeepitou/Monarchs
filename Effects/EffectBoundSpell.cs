@@ -34,16 +34,8 @@ namespace TcgEngine
         
         private CardData GetRandomSpellCardData(GameLogic logic)
         {
-            List<CardData> spellCards = new List<CardData>();
-            foreach (var cardData in CardData.GetAll())
-            {
-                if ((cardData.cardType == CardType.Spell || cardData.cardType == CardType.Trap)
-                    && cardData.deckBuilding)
-                {
-                    spellCards.Add(cardData);
-                }
-            }
-
+            List<CardData> spellCards = CardData.GetAllInterventions();
+            
             if (spellCards.Count == 0)
                 return null;
 

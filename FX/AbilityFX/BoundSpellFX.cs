@@ -25,7 +25,6 @@ namespace Monarchs
         private void OnAbilitySummonedCardToHand(string uid, string id)
         {
             GameClient.Get().onAbilitySummonedCardToHand -= OnAbilitySummonedCardToHand;
-            HandCardArea.CardMovingToHandCount++;
             RectTransform rectTransform = BoardCard.Get(_abilityArgs.caster.uid).GetComponent<RectTransform>();
             CardData cardData = CardData.Get(id);
             
@@ -34,6 +33,7 @@ namespace Monarchs
                 Debug.LogError("BoundSpellFX: CardData not found for id " + id);
                 return;
             }
+            HandCardArea.CardMovingToHandCount++;
 
             Card card = Card.Create(cardData, _abilityArgs.caster.VariantData, _abilityArgs.caster.playerID, uid);
             
@@ -53,7 +53,6 @@ namespace Monarchs
         // The Destroy method is a coroutine that destroys the game object after completing its tasks.
         private IEnumerator Destroy()
         {
-            
             Destroy(gameObject);
             yield break ;
         }

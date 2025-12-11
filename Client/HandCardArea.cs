@@ -61,16 +61,6 @@ namespace Monarchs.Client
 
             _lastDestroyedTimer += Time.deltaTime;
 
-            // if (_currentTime < _refreshDelay)
-            // {
-            //     _currentTime += Time.deltaTime;
-            // }
-            // else
-            // {
-            //     _currentTime = 0f;
-            //     RefreshHand();
-            // }
-
             //Set target focus
             HandCard dragCard = HandCard.GetDrag();
             _isDragging = dragCard != null;
@@ -186,7 +176,8 @@ namespace Monarchs.Client
             handCard.deckPositionGameObject = deck;
             cards.Add(handCard);
             
-            int cardToRemove = IsAMovingCard ? CardMovingToHandCount-1 : CardMovingToHandCount;
+            // We substract one if it's a moving card because it is already counted in the hand
+            int cardToRemove = IsAMovingCard ? CardMovingToHandCount-1 : CardMovingToHandCount; 
             float countHalf = (cards.Count + cardToRemove) / 2f;
             int index = cards.Count - 1;
             cardObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -100f);
