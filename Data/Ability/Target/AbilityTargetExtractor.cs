@@ -24,7 +24,6 @@ namespace Ability.Target
         private AbilityTargetAllCardsHands _allCardsHands = new ();
         private AbilityTargetAllCardsAllPiles _allCardsAllPiles = new ();
         private AbilityTargetAllSlots _allSlots = new ();
-        private AbilityTargetAllCardData _allCardData = new ();
         
         private AbilityTargetAbilityTriggerer _abilityTriggerer = new ();
         
@@ -98,8 +97,6 @@ namespace Ability.Target
                     return _allCardsAllPiles.GetAllTargets(data, args, memoryArray);
                 case AbilityTargetType.AllSlots:
                     return _allSlots.GetAllTargets(data, args, memoryArray);
-                case AbilityTargetType.AllCardData:
-                    return _allCardData.GetAllTargets(data, args, memoryArray);
                 case AbilityTargetType.AbilityTriggerer:
                     return _abilityTriggerer.GetAllTargets(data, args, memoryArray);
                 case AbilityTargetType.LastAttackedSlot:

@@ -38,7 +38,7 @@ namespace Monarchs.Logic
         public UnityAction<AbilityArgs, bool> onAbilityTarget;
         public UnityAction<AbilityArgs, List<Slot>> onAbilityTargetMultiple;
         public UnityAction<AbilityArgs> onAbilityEnd;
-        public UnityAction<string> onAbilitySummonedCardToHand;
+        public UnityAction<string, string> onAbilitySummonedCardToHand; //uid, id
 
         public UnityAction<Card, Card, int> onAttackStart;  //Attacker, Defender
         public UnityAction<Card, Card, int> onAttackEnd;     //Attacker, Defender

@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using Monarchs.Ability;
 using Monarchs.Logic;
 using Monarchs.Logic.AbilitySystem;
 using UnityEngine;
@@ -13,14 +11,44 @@ namespace TcgEngine
     [CreateAssetMenu(fileName = "effect", menuName = "TcgEngine/Effect/EffectBoundSpell")]
     public class EffectBoundSpell : EffectData
     {
+        public bool randomSpells = false;
         public override void DoEffectPlayerTarget(GameLogic logic, AbilityArgs args)
         {
+            if (randomSpells)
+            {
+                CardData randomSpellCardData = GetRandomSpellCardData(logic);
+                if (randomSpellCardData != null)
+                {
+                    Card card = logic.SummonCardHand(args.PlayerTarget.playerID, randomSpellCardData, VariantData.GetDefault(), "");
+                    logic.onAbilitySummonedCardToHand?.Invoke(card.uid, card.cardID);
+                }
+                return;
+            }
             foreach (var cardData in args.castedCard.CardData.boundSpells)
             {
                 Card card = logic.SummonCardHand(args.PlayerTarget.playerID, cardData, VariantData.GetDefault(), "");
-                logic.onAbilitySummonedCardToHand?.Invoke(card.uid);
+                logic.onAbilitySummonedCardToHand?.Invoke(card.uid, card.cardID);
             }
             
+        }
+        
+        private CardData GetRandomSpellCardData(GameLogic logic)
+        {
+            List<CardData> spellCards = new List<CardData>();
+            foreach (var cardData in CardData.GetAll())
+            {
+                if ((cardData.cardType == CardType.Spell || cardData.cardType == CardType.Trap)
+                    && cardData.deckBuilding)
+                {
+                    spellCards.Add(cardData);
+                }
+            }
+
+            if (spellCards.Count == 0)
+                return null;
+
+            int randomIndex = Random.Range(0, spellCards.Count);
+            return spellCards[randomIndex];
         }
     }
 }

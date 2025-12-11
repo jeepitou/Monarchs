@@ -14,7 +14,6 @@
         AllCardsHand = 11,
         AllCardsAllPiles = 12,
         AllSlots = 15,
-        AllCardData = 17,       //For card Create effects only
 
         PlayTarget = 20,        //The target selected at the same time the spell was played (spell only)    
         PlayTargetAndSelectMultiplesTarget = 21,

@@ -225,6 +225,20 @@ namespace TcgEngine
             serializer.SerializeValue(ref cardUID);
         }
     }
+    
+    public class MsgCardWithID : INetworkSerializable
+    {
+        public string cardUID;
+        public string cardID;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref cardUID);
+            serializer.SerializeValue(ref cardID);
+        }
+    }
+    
+    
 
     public class MsgPlayer : INetworkSerializable
     {

@@ -99,11 +99,12 @@ namespace Monarchs.GameServer
             _gameplay.onSelectorSelect += OnSelector;
         }
 
-        private void OnAbilitySummonedCardToHand(string uid)
+        private void OnAbilitySummonedCardToHand(string uid, string id)
         {
-            MsgCard msg = new MsgCard
+            MsgCardWithID msg = new MsgCardWithID
             {
-                cardUID = uid
+                cardUID = uid,
+                cardID = id
             };
 
                 
