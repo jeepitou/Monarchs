@@ -121,7 +121,7 @@ namespace Monarchs.Client
         {
             if (!GameClient.Get().IsReady() || _drawingCard || puttingCardBackInHand)
                 return;
-
+            bool animate = _cardTransform.localScale == _startScale;
             _focusTimer += Time.deltaTime;
 
             Card card = GetCard();
@@ -132,6 +132,7 @@ namespace Monarchs.Client
 
             if (IsFocus())
             {
+                animate = false;
                 SetFocusedProperties();
                 SetOnTop();
                 _cardUI.cardUI.ShowDescription();
@@ -148,6 +149,7 @@ namespace Monarchs.Client
 
             if (IsDrag())
             {
+                animate = false;
                 ResetCohortCopiesPosition();
                 SetOnTop();
                 BoardSlot currentlyHoveredSlot = BoardInputManager.Instance.GetLastHoveredSlot();
@@ -201,9 +203,19 @@ namespace Monarchs.Client
             bool canPlay = game.CanPlayCardThisTurn(card);
             
             Vector2 offset = canPlay? new Vector3(0f, 30f) : Vector2.zero;
-            _cardTransform.anchoredPosition = _targetPosition + offset;
-            _cardTransform.localRotation = Quaternion.Euler(_currentRotate);
+            if (animate)
+            {
+                _cardTransform.anchoredPosition = Vector2.Lerp(_cardTransform.anchoredPosition, _targetPosition + offset, 10f * Time.deltaTime);
+                _cardTransform.localRotation = Quaternion.Lerp(_cardTransform.localRotation, Quaternion.Euler(_currentRotate), 10f * Time.deltaTime);
+            }
+            else
+            {
+                _cardTransform.anchoredPosition = _targetPosition + offset;
+                _cardTransform.localRotation = Quaternion.Euler(_currentRotate);
+            }
+
             _cardTransform.localScale = _targetSize;
+            
             hitbox.localScale = _startScale/_cardTransform.localScale.x;
             hitbox.localRotation =
                 Quaternion.Euler(new Vector3(0, 0, deckAngle - _cardTransform.localRotation.eulerAngles.z));

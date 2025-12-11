@@ -7,11 +7,17 @@ namespace Monarchs.Client
 {
     public class HandCardFX : MonoBehaviour
     {
-        public IEnumerator SendToHand(float velocity)
+        public float GetDurationToHand(float velocity)
         {
             RectTransform childRectTransform = transform.GetChild(0).GetComponent<RectTransform>();
             float distance = Vector3.Distance(childRectTransform.localPosition, Vector3.zero);
-            float duration = distance / velocity;
+            return distance / velocity;
+        }
+        
+        public IEnumerator SendToHand(float velocity)
+        {
+            RectTransform childRectTransform = transform.GetChild(0).GetComponent<RectTransform>();
+            float duration = GetDurationToHand(velocity);
             
             childRectTransform.DOLocalMove(Vector3.zero, duration).SetEase(Ease.InOutCubic);
             GetComponent<RectTransform>().DOLocalRotate(GetComponent<HandCard>().deckAngle*Vector3.forward, duration).SetEase(Ease.InOutCubic);

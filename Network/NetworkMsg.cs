@@ -225,7 +225,22 @@ namespace TcgEngine
             serializer.SerializeValue(ref cardUID);
         }
     }
+    
+    /// <summary>
+    /// This message is used when a card is summoned to hand, containing both its unique identifier and its card ID.
+    /// </summary>
+    public class MsgCardWithID : INetworkSerializable
+    {
+        public string cardUID;
+        public string cardID;
 
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref cardUID);
+            serializer.SerializeValue(ref cardID);
+        }
+    }
+    
     public class MsgPlayer : INetworkSerializable
     {
         public int playerID;

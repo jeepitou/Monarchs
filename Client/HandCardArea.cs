@@ -24,6 +24,7 @@ namespace Monarchs.Client
 
         public List<HandCard> cards = new ();
 
+        public static int CardMovingToHandCount = 0;
         private float _refreshDelay = 0.1f; 
         private float _currentTime = 0f;
         private bool _isDragging;
@@ -59,16 +60,6 @@ namespace Monarchs.Client
                 return;
 
             _lastDestroyedTimer += Time.deltaTime;
-
-            if (_currentTime < _refreshDelay)
-            {
-                _currentTime += Time.deltaTime;
-            }
-            else
-            {
-                _currentTime = 0f;
-                RefreshHand();
-            }
 
             //Set target focus
             HandCard dragCard = HandCard.GetDrag();
@@ -107,9 +98,13 @@ namespace Monarchs.Client
 
             //Set card index
             int index = 0;
-            float countHalf = cards.Count / 2f;
+            float countHalf = (cards.Count - CardMovingToHandCount) / 2f;
             foreach (HandCard card in cards)
             {
+                if (index >= cards.Count - CardMovingToHandCount)
+                {
+                    break;
+                }
                 card.handIndex = index;
                 card.deckPosition = new Vector2((index - countHalf) * cardSpacing, (index - countHalf) * (index - countHalf) * -cardOffsetY);
                 card.deckAngle = (index - countHalf) * -cardAngle;
@@ -149,9 +144,13 @@ namespace Monarchs.Client
 
             //Set card index
             int index = 0;
-            float countHalf = cards.Count / 2f;
+            float countHalf = (cards.Count - CardMovingToHandCount) / 2f;
             foreach (HandCard card in cards)
             {
+                if (index >= cards.Count - CardMovingToHandCount)
+                {
+                    break;
+                }
                 card.handIndex = index;
                 card.deckPosition = new Vector2((index - countHalf) * cardSpacing, (index - countHalf) * (index - countHalf) * -cardOffsetY);
                 card.deckAngle = (index - countHalf) * -cardAngle;
@@ -159,7 +158,7 @@ namespace Monarchs.Client
             }
         }
 
-        public GameObject SpawnNewCard(Card card, bool removeExisting = false)
+        public GameObject SpawnNewCard(Card card, bool removeExisting = false, bool IsAMovingCard = false)
         {
             if (removeExisting)
             {
@@ -177,7 +176,9 @@ namespace Monarchs.Client
             handCard.deckPositionGameObject = deck;
             cards.Add(handCard);
             
-            float countHalf = cards.Count / 2f;
+            // We substract one if it's a moving card because it is already counted in the hand
+            int cardToRemove = IsAMovingCard ? CardMovingToHandCount-1 : CardMovingToHandCount; 
+            float countHalf = (cards.Count + cardToRemove) / 2f;
             int index = cards.Count - 1;
             cardObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -100f);
             handCard.handIndex = index;

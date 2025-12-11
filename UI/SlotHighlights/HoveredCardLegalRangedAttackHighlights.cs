@@ -56,7 +56,7 @@ namespace Monarchs
             _possibleRangeAttack = BoardSlot.GetBoardSlotsFromCoordinates(draggedCard.GetCurrentMovementScheme().GetLegalRangedAttack(slot.GetCoordinate(),
                 draggedCard.CardData.minAttackRange, draggedCard.GetMaxAttackRange(),
                 draggedCard.playerID, GameClient.GetGameData(), true, true, true).ToArray());
-            
+
             SetStatus(_possibleRangeAttack, true);
         }
         

@@ -168,6 +168,7 @@ namespace TcgEngine
         public PackData[] packs;
 
         public static List<CardData> cardList = new List<CardData>();
+        private static List<CardData> interventionCardList = new List<CardData>();
 
         public static void Load(string folder = "")
         {
@@ -568,6 +569,20 @@ namespace TcgEngine
                     multiList.Add(acard);
             }
             return multiList;
+        }
+        
+        public static List<CardData> GetAllInterventions()
+        {
+            if (interventionCardList.Count == 0)
+            {
+                interventionCardList.AddRange(
+                    GetAll().Where(acard =>
+                        (acard.cardType == CardType.Spell || acard.cardType == CardType.Trap) && acard.deckBuilding
+                    )
+                );
+            }
+
+            return interventionCardList;
         }
 
         public static List<CardData> GetAll()

@@ -54,7 +54,7 @@ namespace Monarchs.Client
         public UnityAction<AbilityData, Card, List<Slot>> onAbilityTargetMultiple;
         public UnityAction<AbilityData, Card, Slot, bool> onAbilityTargetSlot;
         public UnityAction<AbilityData, Card> onAbilityEnd;
-        public UnityAction<string> onAbilitySummonedCardToHand; // Event triggered when a card is summoned to hand via ability
+        public UnityAction<string, string> onAbilitySummonedCardToHand; //UID, ID Event triggered when a card is summoned to hand via ability
         public UnityAction<Card, Card> onTrapTrigger;    //Secret, Triggerer
         public UnityAction<Card, Card> onTrapResolve;    //Secret, Triggerer
 
@@ -157,12 +157,12 @@ namespace Monarchs.Client
 
         private void OnAbilitySummonedCardToHand(SerializedData msg)
         {
-            animationManager.AddToQueue(OnAbilitySummonedCardToHandCoroutine(msg.Get<MsgCard>().cardUID), gameObject);
+            animationManager.AddToQueue(OnAbilitySummonedCardToHandCoroutine(msg.Get<MsgCardWithID>().cardUID, msg.Get<MsgCardWithID>().cardID), gameObject);
         }
 
-        private IEnumerator OnAbilitySummonedCardToHandCoroutine(string uid)
+        private IEnumerator OnAbilitySummonedCardToHandCoroutine(string uid, string id)
         {
-            onAbilitySummonedCardToHand?.Invoke(uid);
+            onAbilitySummonedCardToHand?.Invoke(uid, id);
             yield return null;
         }
 
