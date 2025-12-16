@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Monarchs;
+using Monarchs.Api;
 using UnityEngine;
 using UnityEngine.UI;
 using TcgEngine.UI;
@@ -236,7 +238,7 @@ namespace TcgEngine
             UserDeckData req = new UserDeckData();
             req.tid = deck.id;
             req.title = deck.title;
-            req.hero = deck.monarch != null ? deck.monarch.id : "";
+            req.monarch = deck.monarch != null ? deck.monarch.id : "";
             req.cards = new string[deck.cards.Length];
 
             for (int i = 0; i < req.cards.Length; i++)

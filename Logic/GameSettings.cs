@@ -1,5 +1,7 @@
-﻿using TcgEngine;
+﻿using Monarchs.Api;
+using TcgEngine;
 using Unity.Netcode;
+using UnityEngine.Serialization;
 
 namespace Monarchs.Logic
 {
@@ -190,15 +192,17 @@ namespace Monarchs.Logic
     public class PlayerDeckSettings : INetworkSerializable
     {
         public string id;
-        public string hero;
+        public string monarch;
+        public string champion;
         public string[] cards;
 
         public PlayerDeckSettings() { cards = new string[0]; }
-        public PlayerDeckSettings(UserDeckData deck) { id = deck.tid; hero = deck.hero; cards = deck.cards; FixData(); }
+        public PlayerDeckSettings(UserDeckData deck) { id = deck.tid; monarch = deck.monarch; cards = deck.cards; FixData(); }
 
         public PlayerDeckSettings(DeckData deck) { 
             id = deck.id;
-            hero = deck.monarch != null ? deck.monarch.id : "";
+            monarch = deck.monarch != null ? deck.monarch.id : "";
+            champion = deck.champion != null ? deck.champion.id : "";
             cards = new string[deck.cards.Length];
             for (int i = 0; i < deck.cards.Length; i++)
                 cards[i] = deck.cards[i].id;
@@ -209,14 +213,16 @@ namespace Monarchs.Logic
         public void FixData()
         {
             if (id == null) id = "";
-            if (hero == null) hero = "";
+            if (monarch == null) monarch = "";
+            if (champion == null) champion = "";
             if (cards == null) cards = new string[0];
         }
 
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref id);
-            serializer.SerializeValue(ref hero);
+            serializer.SerializeValue(ref monarch);
+            serializer.SerializeValue(ref champion);
             NetworkTool.NetSerializeArray(serializer, ref cards);
         }
 
@@ -226,7 +232,8 @@ namespace Monarchs.Logic
             {
                 PlayerDeckSettings deck = new PlayerDeckSettings();
                 deck.id = "";
-                deck.hero = "";
+                deck.monarch = "";
+                deck.champion = "";
                 deck.cards = new string[0];
                 return deck;
             }

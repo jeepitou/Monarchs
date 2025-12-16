@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Monarchs.GameServer;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -68,7 +69,7 @@ namespace TcgEngine.Server
             {
                 ClientData iclient = client_list[client_id];
                 if(iclient.username != null)
-                    matchmaking_players.Remove(iclient.user_id);
+                    matchmaking_players.Remove(iclient.userID);
                 client_list.Remove(client_id);
             }
         }
@@ -84,7 +85,7 @@ namespace TcgEngine.Server
             string user_id = msg.user_id;
             bool is_refresh = msg.refresh;
 
-            iclient.user_id = msg.user_id;
+            iclient.userID = msg.user_id;
             iclient.username = msg.username;
 
             //Restart matching
@@ -183,7 +184,7 @@ namespace TcgEngine.Server
             msg_match.game_uid = match != null ? match.game_uid : "";
             msg_match.server_url = match != null ? match.server_url : "";
 
-            Messaging.SendObject("matchmaking", iclient.client_id, msg_match, NetworkDelivery.Reliable);
+            Messaging.SendObject("matchmaking", iclient.clientID, msg_match, NetworkDelivery.Reliable);
         }
 
         protected virtual void ReceiveMatchmakingList(ulong client_id, FastBufferReader reader)

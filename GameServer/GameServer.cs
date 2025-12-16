@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Monarchs.Ability;
+using Monarchs.Api;
 using Monarchs.Logic;
 using Monarchs.Logic.AbilitySystem;
+using Monarchs.Tools;
 using TcgEngine;
 using TcgEngine.AI;
 using TcgEngine.Server;
@@ -521,7 +524,7 @@ namespace Monarchs.GameServer
 
                     if(Authenticator.Get().IsApi())
                         user = await ApiClient.Get().LoadUserData(username); //Online game, validate from api
-
+                    
                     //Use user API deck
                     UserDeckData udeck = user?.GetDeck(deck.id);
                     if (user != null && udeck != null)
@@ -546,7 +549,7 @@ namespace Monarchs.GameServer
 
                     //Trust client in test mode
                     else if (Authenticator.Get().IsTest())
-                        _gameplay.SetPlayerDeck(playerID, deck.id, deck.hero, deck.cards);
+                        _gameplay.SetPlayerDeck(playerID, deck.id, deck.monarch, deck.champion, deck.cards);
 
                     //Deck not found
                     else
@@ -840,7 +843,7 @@ namespace Monarchs.GameServer
         {
             foreach (ClientData client in _connectedClients)
             {
-                if (client.client_id == clientID)
+                if (client.clientID == clientID)
                     return client;
             }
             return null;
@@ -858,7 +861,7 @@ namespace Monarchs.GameServer
             int index = 0;
             foreach (ClientData player in _players)
             {
-                if (player.user_id == client.user_id)
+                if (player.userID == client.userID)
                     return index;
                 index++;
             }
@@ -953,7 +956,7 @@ namespace Monarchs.GameServer
         {
             _gameplay.DisconnectPlayer();
             MsgClientID msg = new MsgClientID();
-            msg.clientID = iclient.client_id; 
+            msg.clientID = iclient.clientID; 
             msg.secondsUntilForfeit = Math.Max(0, (int)Math.Round(WIN_EXPIRE_TIME - _winExpiration));
             SendToAll(GameAction.Disconnected, msg, NetworkDelivery.Reliable);
             RefreshAll();
@@ -963,7 +966,7 @@ namespace Monarchs.GameServer
         {
             _gameplay.ReconnectPlayer();
             MsgClientID msg = new MsgClientID();
-            msg.clientID = iclient.client_id; 
+            msg.clientID = iclient.clientID; 
             msg.secondsUntilForfeit = 0;
             SendToAll(GameAction.Reconnected, msg, NetworkDelivery.Reliable);
             RefreshAll();
@@ -1312,7 +1315,7 @@ namespace Monarchs.GameServer
             {
                 if (client != null)
                 {
-                    Messaging.Send("refresh", client.client_id, writer, NetworkDelivery.Reliable);
+                    Messaging.Send("refresh", client.clientID, writer, NetworkDelivery.Reliable);
                 }
             }
             writer.Dispose();
@@ -1328,7 +1331,7 @@ namespace Monarchs.GameServer
             {
                 if (client != null)
                 {
-                    Messaging.Send("refresh", client.client_id, writer, delivery);
+                    Messaging.Send("refresh", client.clientID, writer, delivery);
                 }
             }
             writer.Dispose();
@@ -1339,7 +1342,7 @@ namespace Monarchs.GameServer
             FastBufferWriter writer = new FastBufferWriter(128, Unity.Collections.Allocator.Temp, TcgNetwork.MsgSizeMax);
             writer.WriteValueSafe(tag);
             writer.WriteNetworkSerializable(data);
-            Messaging.Send("refresh", client.client_id, writer, delivery);
+            Messaging.Send("refresh", client.clientID, writer, delivery);
             writer.Dispose();
         }
         
@@ -1350,9 +1353,9 @@ namespace Monarchs.GameServer
             writer.WriteNetworkSerializable(data);
             foreach (ClientData client in _connectedClients)
             {
-                if (client != null && client.client_id != clientToExcept.client_id)
+                if (client != null && client.clientID != clientToExcept.clientID)
                 {
-                    Messaging.Send("refresh", client.client_id, writer, delivery);
+                    Messaging.Send("refresh", client.clientID, writer, delivery);
                 }
             }
             writer.Dispose();

@@ -5,7 +5,9 @@ using System.Data.SqlTypes;
 using System.Threading.Tasks;
 using Monarchs.Ability;
 using Monarchs.Animations;
+using Monarchs.Api;
 using Monarchs.Logic;
+using Monarchs.Tools;
 using TcgEngine;
 using Unity.Netcode;
 using UnityEngine;
@@ -199,8 +201,9 @@ namespace Monarchs.Client
             if (!Authenticator.Get().IsSignedIn())
             {
                 Authenticator.Get().LoginTest("Player");
-
-                PlayerSettings.deck = new PlayerDeckSettings(GameplayData.Get().test_deck);
+                DeckData deck = GameplayData.Get().test_deck;
+                
+                PlayerSettings.deck = new PlayerDeckSettings(deck);
                 AISettings.deck = new PlayerDeckSettings(GameplayData.Get().test_deck_ai);
                 AISettings.ai_level = GameplayData.Get().ai_level;
             }

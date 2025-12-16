@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Monarchs.Ability;
+using Monarchs.Api;
 using Monarchs.Logic.AbilitySystem;
 using TcgEngine;
 using UnityEngine;
@@ -122,13 +123,13 @@ namespace Monarchs.Logic
         /// </summary>
         public virtual void SetPlayerDeck(int playerID, UserDeckData deck)
         {
-            SetPlayerDeck(playerID, deck.tid, deck.hero, deck.cards);
+            SetPlayerDeck(playerID, deck.tid, deck.monarch, deck.champion, deck.cards);
         }
 
         /// <summary>
         /// Sets up a player's deck using card IDs
         /// </summary>
-        public virtual void SetPlayerDeck(int playerID, string deckID, string hero, string[] cards)
+        public virtual void SetPlayerDeck(int playerID, string deckID, string monarch, string champion, string[] cards)
         {
             Player player = _game.GetPlayer(playerID);
 
@@ -136,19 +137,27 @@ namespace Monarchs.Logic
             player.cards_deck.Clear();
             player.deck = deckID;
 
-            CardData heroCardData = UserCardData.GetCardData(hero);
+            CardData heroCardData = UserCardData.GetCardData(monarch);
             
-            if (heroCardData != null && !string.IsNullOrEmpty(hero))
+            if (heroCardData != null && !string.IsNullOrEmpty(monarch))
             {
                 if (_game.firstPlayer == playerID)
                 {
-                    AddCardBeforeGame(heroCardData, true, Slot.Get(3, 2));
+                    AddCardBeforeGame(heroCardData, true, Slot.Get(3, 0));
                 }
                 else
                 {
                     AddCardBeforeGame(heroCardData, false, Slot.Get(4, 5));
                 }
             }
+            
+            // Champion to hand
+            CardData championCardData = UserCardData.GetCardData(champion);
+            VariantData championVariant = UserCardData.GetCardVariant(champion);
+            Card championCard = Card.Create(championCardData, championVariant, player.playerID);
+            player.cards_all[championCard.uid] = championCard;
+            player.cards_hand.Add(championCard);
+            
 
             foreach (string tid in cards)
             {

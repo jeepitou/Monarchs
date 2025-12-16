@@ -1,13 +1,11 @@
-using System.Collections;
 using System.Collections.Generic;
 using Monarchs.Client;
-using Monarchs.GameServer;
 using Monarchs.Logic;
+using TcgEngine;
 using Unity.Netcode;
 using UnityEngine;
-using TcgEngine.Client;
 
-namespace TcgEngine.Server
+namespace Monarchs.GameServer
 {
     /// <summary>
     /// Local server running on the client to play in solo mode against AI
@@ -16,9 +14,9 @@ namespace TcgEngine.Server
 
     public class ServerManagerLocal : MonoBehaviour
     {
-        protected GameServer server;
+        protected GameServer _server;
 
-        protected Dictionary<ulong, ClientData> client_list = new Dictionary<ulong, ClientData>();  //List of clients
+        protected Dictionary<ulong, ClientData> _clientList = new ();  //List of clients
 
         protected virtual void Start()
         {
@@ -36,8 +34,8 @@ namespace TcgEngine.Server
             network.Messaging.ListenMsg("connect", ReceiveConnectPlayer);
             network.Messaging.ListenMsg("action", ReceiveGameAction);
 
-            client_list[network.ServerID] = new ClientData(network.ServerID); //Add yourself
-            server = new GameServer(GameClient.GameSettings.game_uid, GameClient.GameSettings.nb_players, false);
+            _clientList[network.ServerID] = new ClientData(network.ServerID); //Add yourself
+            _server = new GameServer(GameClient.GameSettings.game_uid, GameClient.GameSettings.nb_players, false);
         }
 
         protected virtual void OnDestroy()
@@ -52,26 +50,26 @@ namespace TcgEngine.Server
             }
         }
 
-        protected virtual void OnClientJoin(ulong client_id)
+        protected virtual void OnClientJoin(ulong clientID)
         {
-            client_list[client_id] = new ClientData(client_id);
+            _clientList[clientID] = new ClientData(clientID);
         }
 
-        protected virtual void OnClientQuit(ulong client_id)
+        protected virtual void OnClientQuit(ulong clientID)
         {
             TcgNetwork network = TcgNetwork.Get();
             ClientData client = GetClient(network.ClientID);
-            server?.RemoveClient(client);
-            client_list.Remove(network.ClientID);
+            _server?.RemoveClient(client);
+            _clientList.Remove(network.ClientID);
         }
 
         protected virtual void Update()
         {
-            if (server != null)
-                server.Update();
+            if (_server != null)
+                _server.Update();
         }
 
-        protected virtual void ReceiveConnectPlayer(ulong client_id, FastBufferReader reader)
+        protected virtual void ReceiveConnectPlayer(ulong clientID, FastBufferReader reader)
         {
             //ClientData iclient = GetClient(client_id);
             reader.ReadNetworkSerializable(out MsgPlayerConnect msg);
@@ -84,20 +82,20 @@ namespace TcgEngine.Server
                 if (string.IsNullOrWhiteSpace(msg.game_uid))
                     return;
 
-                ClientData client = GetClient(client_id);
+                ClientData client = GetClient(clientID);
                 if (client == null)
                     return;
 
-                bool can_connect = server.IsPlayer(client) || server.CountPlayers() < server.nbPlayers;
-                if (can_connect)
+                bool canConnect = _server.IsPlayer(client) || _server.CountPlayers() < _server.nbPlayers;
+                if (canConnect)
                 {
-                    client.game_uid = msg.game_uid;
-                    client.user_id = msg.user_id;
+                    client.gameUID = msg.game_uid;
+                    client.userID = msg.user_id;
                     client.username = msg.username;
-                    server.AddClient(client);
+                    _server.AddClient(client);
 
-                    int player_id = server.AddPlayer(client);
-                    Player player = server.GetGameData().GetPlayer(player_id);
+                    int playerID = _server.AddPlayer(client);
+                    Player player = _server.GetGameData().GetPlayer(playerID);
                     if (player != null)
                     {
                         player.username = msg.username;
@@ -105,37 +103,37 @@ namespace TcgEngine.Server
                     }
 
                     //Return request
-                    MsgAfterConnected msg_data = new MsgAfterConnected();
-                    msg_data.success = true;
-                    msg_data.playerID = player_id;
-                    msg_data.game_data = server.GetGameData();
-                    SendToClient(client_id, GameAction.Connected, msg_data, NetworkDelivery.ReliableFragmentedSequenced);
+                    MsgAfterConnected msgData = new MsgAfterConnected();
+                    msgData.success = true;
+                    msgData.playerID = playerID;
+                    msgData.game_data = _server.GetGameData();
+                    SendToClient(clientID, GameAction.Connected, msgData, NetworkDelivery.ReliableFragmentedSequenced);
                 }
             }
         }
 
-        protected virtual void ReceiveGameAction(ulong client_id, FastBufferReader reader)
+        protected virtual void ReceiveGameAction(ulong clientID, FastBufferReader reader)
         {
-            server.ReceiveAction(client_id, reader);
+            _server.ReceiveAction(clientID, reader);
         }
 
-        public void SendToClient(ulong client_id, ushort tag, INetworkSerializable data, NetworkDelivery delivery)
+        public void SendToClient(ulong clientID, ushort gameAction, INetworkSerializable data, NetworkDelivery delivery)
         {
             FastBufferWriter writer = new FastBufferWriter(128, Unity.Collections.Allocator.Temp, TcgNetwork.MsgSizeMax);
-            writer.WriteValueSafe(tag);
+            writer.WriteValueSafe(gameAction);
             writer.WriteNetworkSerializable(data);
-            Messaging.Send("refresh", client_id, writer, delivery);
+            Messaging.Send("refresh", clientID, writer, delivery);
             writer.Dispose();
         }
 
-        public ClientData GetClient(ulong client_id)
+        public ClientData GetClient(ulong clientID)
         {
-            if (client_list.ContainsKey(client_id))
-                return client_list[client_id];
+            if (_clientList.ContainsKey(clientID))
+                return _clientList[clientID];
             return null;
         }
 
-        public ulong ServerID { get { return TcgNetwork.Get().ServerID; } }
-        public NetworkMessaging Messaging { get { return TcgNetwork.Get().Messaging; } }
+        public ulong ServerID => TcgNetwork.Get().ServerID; 
+        public NetworkMessaging Messaging => TcgNetwork.Get().Messaging;
     }
 }

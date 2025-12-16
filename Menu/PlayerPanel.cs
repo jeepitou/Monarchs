@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Monarchs;
+using Monarchs.Api;
 using Monarchs.Client;
 using UnityEngine;
 using UnityEngine.UI;
@@ -281,7 +283,7 @@ namespace TcgEngine.UI
             user_password_confirm.text = "password";
             edit_change1.gameObject.SetActive(true);
             edit_change2.gameObject.SetActive(true);
-            resend_button.gameObject.SetActive(udata.validation_level == 0);
+            resend_button.gameObject.SetActive(udata.validationLevel == 0);
             confirm_button.gameObject.SetActive(false);
             edit_error.text = "";
             edit_panel.Show();

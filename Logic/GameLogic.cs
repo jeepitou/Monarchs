@@ -2,6 +2,7 @@
 using System.Linq;
 using Monarchs.Ability;
 using Monarchs.Ability.Target;
+using Monarchs.Api;
 using Monarchs.Initiative;
 using Monarchs.Logic.AbilitySystem;
 using TcgEngine;
@@ -295,9 +296,9 @@ namespace Monarchs.Logic
         /// <summary>
         /// Sets up a player's deck using card IDs
         /// </summary>
-        public virtual void SetPlayerDeck(int playerID, string deckID, string hero, string[] cards)
+        public virtual void SetPlayerDeck(int playerID, string deckID, string monarch, string champion, string[] cards)
         {
-            _cardManager.SetPlayerDeck(playerID, deckID, hero, cards);
+            _cardManager.SetPlayerDeck(playerID, deckID, monarch, champion, cards);
         }
 
         /// <summary>

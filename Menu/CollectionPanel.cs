@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Monarchs;
 using Monarchs.Ability;
+using Monarchs.Api;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -372,7 +374,7 @@ namespace TcgEngine.UI
 
                 foreach (IconButton btn in hero_powers)
                 {
-                    if (btn.value == deck.hero)
+                    if (btn.value == deck.monarch)
                         btn.Activate();
                 }
                 
@@ -488,13 +490,13 @@ namespace TcgEngine.UI
             UserDeckData udeck = new UserDeckData();
             udeck.tid = current_deck_tid;
             udeck.title = deck_title.text;
-            udeck.hero = "";
+            udeck.monarch = "";
             saving = true;
 
             foreach (IconButton btn in hero_powers)
             {
                 if (btn.IsActive())
-                    udeck.hero = btn.value;
+                    udeck.monarch = btn.value;
             }
 
             List<string> card_list = new List<string>();
