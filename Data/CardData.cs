@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Monarchs;
 using Monarchs.Ability;
-using Monarchs.Ability.Target;
 using Monarchs.Logic;
 using Monarchs.Logic.AbilitySystem;
 using Sirenix.OdinInspector;
+using TcgEngine;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace TcgEngine
+namespace Monarchs
 {
     public enum CardType
     {
@@ -54,7 +53,7 @@ namespace TcgEngine
         [SerializeField,SingleEnumFlagSelect(EnumType = typeof(PieceType))]
         [ShowIf("IsCharacter")] public PieceType type;
 
-        public bool overrideMovementScheme = false;
+        public bool overrideMovementScheme;
         [ShowIf("overrideMovementScheme")] public MovementScheme newMovementScheme;
         public bool IsKing => type == PieceType.Monarch;
         [ShowIf("IsKing")] public PlayerMana.ManaType manaTypeThatCanBeGenerated;
@@ -105,7 +104,7 @@ namespace TcgEngine
         public SubtypeData[] subtypes;
         public RarityData rarity;
         [ShowIf("IsCharacter")] public int initiative;
-        [ShowIf("IsCharacter")] public int musterTime = 0;
+        [ShowIf("IsCharacter")] public int musterTime;
 
         [ShowIf("IsCharacter")] public int attack;
         public EffectSplashDamage meleeSplashDamageForHighlights;
@@ -163,17 +162,17 @@ namespace TcgEngine
         
 
         [Header("Availability")]
-        public bool deckBuilding = false;
+        public bool deckBuilding;
         public int cost = 100;
         public PackData[] packs;
 
-        public static List<CardData> cardList = new List<CardData>();
-        private static List<CardData> interventionCardList = new List<CardData>();
+        public static List<CardData> CardList = new ();
+        private static List<CardData> _interventionCardList = new ();
 
         public static void Load(string folder = "")
         {
-            if (cardList.Count == 0)
-                cardList.AddRange(Resources.LoadAll<CardData>(folder));
+            if (CardList.Count == 0)
+                CardList.AddRange(Resources.LoadAll<CardData>(folder));
         }
 
         public Sprite GetBoardArt(VariantData variant)
@@ -187,9 +186,9 @@ namespace TcgEngine
         }
         
         //Used mainly for tests
-        public void SetAbilities(AbilityData[] abilities)
+        public void SetAbilities(AbilityData[] newAbilities)
         {
-            this.abilities = abilities;
+            abilities = newAbilities;
         }
 
         public Sprite GetFullArt(VariantData variant)
@@ -278,7 +277,7 @@ namespace TcgEngine
             return guild;
         }
 
-        public ICard GetCardCorrespondingWithPieceType(PieceType type)
+        public ICard GetCardCorrespondingWithPieceType(PieceType typeToGet)
         {
             if (!differentSpellPerMovement)
             {
@@ -286,7 +285,7 @@ namespace TcgEngine
             }
             
             ICard returnValue = null;
-            switch (type)
+            switch (typeToGet)
             {
                 case PieceType.Bishop:
                     returnValue = bishopSpell;break;
@@ -420,13 +419,13 @@ namespace TcgEngine
             return -1;
         }
 
-        public virtual bool IsTeamTraitAndType(GuildData guild, TraitData trait, SubtypeData subtype,  CardType type)
+        public virtual bool IsTeamTraitAndType(GuildData guildToCheck, TraitData trait, SubtypeData subtype,  CardType typeToCheck)
         {
-            bool is_type = this.cardType == type || type == CardType.None;
-            bool is_team = this.guild == guild || guild == null;
-            bool is_trait = HasTrait(trait) || trait == null;
-            bool is_subtype = subtype == null || GetSubtypes().Contains(subtype);
-            return (is_type && is_team && is_trait && is_subtype);
+            bool isType = this.cardType == typeToCheck || typeToCheck == CardType.None;
+            bool isTeam = this.guild == guildToCheck || guildToCheck == null;
+            bool isTrait = HasTrait(trait) || trait == null;
+            bool isSubtype = subtype == null || GetSubtypes().Contains(subtype);
+            return (isType && isTeam && isTrait && isSubtype);
         }
 
         public virtual bool HasStat(string trait)
@@ -549,6 +548,18 @@ namespace TcgEngine
             return null;
         }
 
+        public static List<CardData> GetList(List<string> ids)
+        {
+            List<CardData> cards = new List<CardData>();
+            foreach (string id in ids)
+            {
+                CardData card = Get(id);
+                if (card != null)
+                    cards.Add(card);
+            }
+            return cards;
+        }
+
         public static List<CardData> GetAllDeckBuilding()
         {
             List<CardData> multiList = new List<CardData>();
@@ -573,21 +584,21 @@ namespace TcgEngine
         
         public static List<CardData> GetAllInterventions()
         {
-            if (interventionCardList.Count == 0)
+            if (_interventionCardList.Count == 0)
             {
-                interventionCardList.AddRange(
+                _interventionCardList.AddRange(
                     GetAll().Where(acard =>
                         (acard.cardType == CardType.Spell || acard.cardType == CardType.Trap) && acard.deckBuilding
                     )
                 );
             }
 
-            return interventionCardList;
+            return _interventionCardList;
         }
 
         public static List<CardData> GetAll()
         {
-            return cardList;
+            return CardList;
         }
         
         public GameObject SpawnFX => spawnFX ? spawnFX : AssetData.Get().card_spawn_fx; 

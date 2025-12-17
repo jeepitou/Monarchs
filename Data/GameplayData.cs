@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Monarchs;
 using Monarchs.Initiative;
 using Monarchs.Logic;
 using UnityEngine;
@@ -43,7 +44,7 @@ namespace TcgEngine
         public Slot blackMonarchStartSlot;
 
         [Header("Deckbuilding")]
-        public int deck_size = 30;
+        public int deck_size = 29;
         public int deck_duplicate_max = 2;
 
         [Header("Buy/Sell")]

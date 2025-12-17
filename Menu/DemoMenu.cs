@@ -1,13 +1,18 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
+using System.Threading.Tasks;
+using Monarchs.Api;
 using Monarchs.Client;
 using Monarchs.Logic;
-using UnityEngine;
-using UnityEngine.UI;
+using Monarchs.Tools;
+using TcgEngine;
+using TcgEngine.UI;
 using TMPro;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
-namespace TcgEngine.UI
+namespace Monarchs.Menu
 {
     /// <summary>
     /// Main script for the main menu scene
@@ -19,22 +24,27 @@ namespace TcgEngine.UI
         public AudioClip ambience;
 
         [Header("Player UI")]
-        public TMP_Text username_txt;
+        public TMP_Text usernameText;
 
         [Header("UI")]
-        public Text version_text;
+        public Text versionText;
 
         public GameObject playPanel;
         public GameObject topPanel;
         public GameObject attemptingToRecconnectPanel;
+        
+        public TMP_InputField customDeckImportField;
+        public TMP_Text customDeckInfoText;
+        public GameObject queueWithCustomDeckButton;
 
-        private bool starting = false;
+        private UserDeckData _importedDeck;
+        private bool _starting;
 
-        private static DemoMenu instance;
+        private static DemoMenu _instance;
 
         void Awake()
         {
-            instance = this;
+            _instance = this;
 
             //Set default settings
             Application.targetFrameRate = 120;
@@ -43,14 +53,11 @@ namespace TcgEngine.UI
 
         private void Start()
         {
-            //BlackPanel.Get().Show(true);
-            //BlackPanel.Get().Hide();
-            
             AudioTool.Get().PlayMusic("music", music);
             AudioTool.Get().PlaySFX("ambience", ambience, 0.5f, true, true);
 
-            username_txt.text = "";
-            version_text.text = "Version " + Application.version;
+            usernameText.text = "";
+            versionText.text = "Version " + Application.version;
 
             if (Authenticator.Get().IsConnected())
                 AfterLogin();
@@ -85,8 +92,6 @@ namespace TcgEngine.UI
 
         void Update()
         {
-            UserData udata = Authenticator.Get().UserData;
-
             bool matchmaking = GameClientMatchmaker.Get().IsMatchmaking();
             
             if (MatchmakingPanel.Get().IsVisible() != matchmaking)
@@ -109,7 +114,6 @@ namespace TcgEngine.UI
 
         private void AfterLogin()
         {
-            //BlackPanel.Get().Hide();
             playPanel.GetComponent<UIPanel>().Show();
             topPanel.GetComponent<UIPanel>().Show();
 
@@ -122,12 +126,73 @@ namespace TcgEngine.UI
             RefreshUserData();
         }
 
+        public void CreateDeck()
+        {
+            CreateDeckWithExportCode(customDeckImportField.text);
+        }
+
+        public async void CreateDeckWithExportCode(string exportCode)
+        {
+            UserDeckData deck = DeckImporter.ImportDeck(exportCode, "Imported Deck");
+
+            bool success = false;
+            if (deck != null)
+            {
+                success = await SaveDeckAPI(Authenticator.Get().UserData, deck);
+            }
+            
+            if (success)
+            {
+                await Authenticator.Get().LoadUserData();
+                _importedDeck = Authenticator.Get().UserData.GetDeck(deck.tid);
+                customDeckInfoText.color = Color.black;
+                customDeckInfoText.text = $"Monarch: {_importedDeck.monarch}\nChampion: {_importedDeck.champion}\nCards: {string.Join(", ", _importedDeck.cards)}";
+                queueWithCustomDeckButton.SetActive(true);
+            }
+            else
+            {
+                customDeckInfoText.color = Color.red;
+                customDeckInfoText.text = "Failed to create deck from export code.";
+                queueWithCustomDeckButton.SetActive(false);
+            }
+        }
+        
+        public void QueueWithCustomDeck()
+        {
+            if (_importedDeck != null)
+            {
+                PlayerDeckSettings playerDeck = new PlayerDeckSettings(_importedDeck);
+                StartMatchmaking(playerDeck);
+            }
+        }
+        
+        private async Task<bool> SaveDeckAPI(UserData udata, UserDeckData udeck)
+        {
+            string url = ApiClient.ServerURL + "/users/deck/" + udeck.tid;
+            string jdata = ApiTool.ToJson(udeck);
+            WebResponse res = await ApiClient.Get().SendPostRequest(url, jdata);
+            UserDeckData[] decks = ApiTool.JsonToArray<UserDeckData>(res.data);
+
+            if (res.success && decks != null)
+            {
+                Debug.Log("Deck saved: " + udeck.tid);
+                udata.decks = decks;
+                await Authenticator.Get().SaveUserData();
+            }
+            else
+            {
+                Debug.LogError("Failed to save deck: " + res.error);
+            }
+            
+            return res.success;
+        }
+        
         public async void RefreshUserData()
         {
             UserData user = await Authenticator.Get().LoadUserData();
             if (user != null)
             {
-                username_txt.text = user.username;
+                usernameText.text = user.username;
                 
                 AvatarData avatar = AvatarData.Get(user.avatar);
             }
@@ -172,19 +237,19 @@ namespace TcgEngine.UI
             StartGame(uid); 
         }
 
-        public void StartGame(GameType type, string game_uid, string server_url = "")
+        public void StartGame(GameType type, string gameUID, string serverURL = "")
         {
             GameClient.GameSettings.game_type = type;
-            StartGame(game_uid, server_url);
+            StartGame(gameUID, serverURL);
         }
 
-        public void StartGame(string game_uid, string server_url = "")
+        public void StartGame(string gameUID, string serverURL = "")
         {
-            if (!starting)
+            if (!_starting)
             {
-                starting = true;
-                GameClient.GameSettings.server_url = server_url; //Empty server_url will use the default one in NetworkData
-                GameClient.GameSettings.game_uid = game_uid;
+                _starting = true;
+                GameClient.GameSettings.server_url = serverURL; //Empty server_url will use the default one in NetworkData
+                GameClient.GameSettings.game_uid = gameUID;
                 GameClient.GameSettings.scene = GameplayData.Get().GetRandomArena();
                 GameClientMatchmaker.Get().Disconnect();
                 FadeToScene(GameClient.GameSettings.GetScene());
@@ -201,6 +266,15 @@ namespace TcgEngine.UI
         public void StartMatchmaking(DeckData deckData)
         {
             PlayerDeckSettings playerDeck = new PlayerDeckSettings(deckData);
+            
+            GameClient.GameSettings.game_type = GameType.Multiplayer;
+            GameClient.GameSettings.game_mode = GameMode.Casual;
+            GameClient.PlayerSettings.deck = playerDeck;
+            GameClientMatchmaker.Get().StartMatchmaking("", GameClient.GameSettings.nb_players);
+        }
+        
+        public void StartMatchmaking(PlayerDeckSettings playerDeck)
+        {
             if (playerDeck != null)
             {
                 GameClient.GameSettings.game_type = GameType.Multiplayer;
@@ -230,7 +304,6 @@ namespace TcgEngine.UI
 
         public void OnClickLogout()
         {
-            
             TcgNetwork.Get().Disconnect();
             Authenticator.Get().Logout();
             FadeToScene("LoginMenu", false);
@@ -248,9 +321,9 @@ namespace TcgEngine.UI
 
         public static DemoMenu Get()
         {
-            return instance;
+            return _instance;
         }
         
-        public NetworkMessaging Messaging { get { return TcgNetwork.Get()?.Messaging; } }
+        public NetworkMessaging Messaging => TcgNetwork.Get()?.Messaging;
     }
 }

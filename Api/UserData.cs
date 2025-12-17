@@ -1,14 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using TcgEngine;
 using UnityEngine;
 
-namespace TcgEngine
+namespace Monarchs.Api
 {
     /// <summary>
     /// Contain UserData retrieved from the web api database
     /// </summary>
-
-
+    
     [System.Serializable]
     public class UserData
     {
@@ -18,8 +17,8 @@ namespace TcgEngine
         public string email;
         public string avatar;
         public string cardback;
-        public int permission_level = 1;
-        public int validation_level = 1;
+        public int permissionLevel = 1;
+        public int validationLevel = 1;
 
         public int coins;
         public int xp;
@@ -46,12 +45,11 @@ namespace TcgEngine
             avatars = new string[0];
             cardbacks = new string[0];
             friends = new string[0];
-            permission_level = 1;
         }
 
         public int GetLevel()
         {
-            return Mathf.FloorToInt(xp / 1000) + 1;
+            return Mathf.FloorToInt((float)xp/1000) + 1;
         }
 
         public string GetAvatar()
@@ -79,10 +77,9 @@ namespace TcgEngine
                 }
             }
 
-            //Not found
             List<UserDeckData> ldecks = new List<UserDeckData>(decks);
             ldecks.Add(deck);
-            this.decks = ldecks.ToArray();
+            decks = ldecks.ToArray();
         }
 
         public UserDeckData GetDeck(string tid)
@@ -146,14 +143,14 @@ namespace TcgEngine
             if (cards == null)
                 return 0;
 
-            HashSet<string> unique_cards = new HashSet<string>();
+            HashSet<string> uniqueCards = new HashSet<string>();
             foreach (UserCardData card in cards)
             {
-                string card_id = UserCardData.GetCardId(card.tid);
-                if (!unique_cards.Contains(card_id))
-                    unique_cards.Add(card_id);
+                string cardID = UserCardData.GetCardId(card.tid);
+                if (!uniqueCards.Contains(cardID))
+                    uniqueCards.Add(cardID);
             }
-            return unique_cards.Count;
+            return uniqueCards.Count;
         }
 
         public int CountCardType(VariantData variant)
@@ -169,16 +166,17 @@ namespace TcgEngine
 
         public bool HasDeckCards(UserDeckData deck)
         {
-            Dictionary<string, int> deck_qt = new Dictionary<string, int>();
-            foreach (string card_tid in deck.cards)
+            return true; // COLLECTION NOT YET IMPLEMENTED
+            Dictionary<string, int> deckCardQuantity = new Dictionary<string, int>();
+            foreach (string cardID in deck.cards)
             {
-                if (!deck_qt.ContainsKey(card_tid))
-                    deck_qt[card_tid] = 1;
+                if (!deckCardQuantity.ContainsKey(cardID))
+                    deckCardQuantity[cardID] = 1;
                 else
-                    deck_qt[card_tid] += 1;
+                    deckCardQuantity[cardID] += 1;
             }
 
-            foreach (KeyValuePair<string, int> pair in deck_qt)
+            foreach (KeyValuePair<string, int> pair in deckCardQuantity)
             {
                 if (GetCardQuantity(pair.Key) < pair.Value)
                     return false;
@@ -248,31 +246,31 @@ namespace TcgEngine
             }
         }
 
-        public bool HasCard(string card_tid, int quantity = 1)
+        public bool HasCard(string cardTid, int quantity = 1)
         {
             foreach (UserCardData card in cards)
             {
-                if (card.tid == card_tid && card.quantity >= quantity)
+                if (card.tid == cardTid && card.quantity >= quantity)
                     return true;
             }
             return false;
         }
 
-        public bool HasPack(string pack_tid, int quantity=1)
+        public bool HasPack(string packTid, int quantity=1)
         {
             foreach (UserCardData pack in packs)
             {
-                if (pack.tid == pack_tid && pack.quantity >= quantity)
+                if (pack.tid == packTid && pack.quantity >= quantity)
                     return true;
             }
             return false;
         }
 
-        public bool HasReward(string reward_id)
+        public bool HasReward(string rewardID)
         {
             foreach (string reward in rewards)
             {
-                if (reward == reward_id)
+                if (reward == rewardID)
                     return true;
             }
             return false;
@@ -283,86 +281,26 @@ namespace TcgEngine
             return coins.ToString();
         }
 
-        public bool HasFriend(string username)
+        public bool HasFriend(string friendUserName)
         {
             List<string> flist = new List<string>(friends);
-            return flist.Contains(username);
+            return flist.Contains(friendUserName);
         }
 
-        public void AddFriend(string username)
+        public void AddFriend(string friendUserName)
         {
             List<string> flist = new List<string>(friends);
-            if (!flist.Contains(username))
-                flist.Add(username);
+            if (!flist.Contains(friendUserName))
+                flist.Add(friendUserName);
             friends = flist.ToArray();
         }
 
-        public void RemoveFriend(string username)
+        public void RemoveFriend(string friendUserName)
         {
             List<string> flist = new List<string>(friends);
-            if (flist.Contains(username))
-                flist.Remove(username);
+            if (flist.Contains(friendUserName))
+                flist.Remove(friendUserName);
             friends = flist.ToArray();
-        }
-    }
-
-    [System.Serializable]
-    public class UserCardData
-    {
-        public string tid;
-        public int quantity;
-
-        public static string GetTid(string card_id, VariantData variant)
-        {
-            if (!variant.is_default)
-                return card_id + variant.GetSuffix();
-            return card_id;
-        }
-
-        public static CardData GetCardData(string tid)
-        {
-            return CardData.Get(GetCardId(tid));
-        }
-
-        public static string GetCardId(string tid)
-        {
-            foreach (VariantData variant in VariantData.GetAll())
-            {
-                string suffix = variant.GetSuffix();
-                if (tid != null && tid.EndsWith(suffix))
-                    return tid.Replace(suffix, "");
-            }
-            return tid;
-        }
-
-        public static VariantData GetCardVariant(string tid)
-        {
-            foreach (VariantData variant in VariantData.GetAll())
-            {
-                string suffix = variant.GetSuffix();
-                if (tid != null && tid.EndsWith(suffix))
-                    return variant;
-            }
-            return VariantData.GetDefault();
-        }
-    }
-
-    [System.Serializable]
-    public class UserDeckData
-    {
-        public string tid;
-        public string title;
-        public string hero;
-        public string[] cards;
-
-        public int GetQuantity()
-        {
-            return cards.Length;
-        }
-
-        public bool IsValid()
-        {
-            return !string.IsNullOrEmpty(tid) && !string.IsNullOrWhiteSpace(title) && cards.Length >= GameplayData.Get().deck_size;
         }
     }
 }

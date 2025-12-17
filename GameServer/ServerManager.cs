@@ -1,14 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Monarchs.GameServer;
 using Monarchs.Logic;
-using UnityEngine.Events;
+using TcgEngine;
+using TcgEngine.Server;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.Events;
 
-namespace TcgEngine.Server
+namespace Monarchs.GameServer
 {
     /// <summary>
     /// Top-level server script, that manages new connection, and assign players to the right match
@@ -19,15 +18,15 @@ namespace TcgEngine.Server
     public class ServerManager : MonoBehaviour
     {
         [Header("API")]
-        public string api_username;
-        public string api_password;
+        public string apiUsername;
+        public string apiPassword;
 
-        private Dictionary<ulong, ClientData> client_list = new Dictionary<ulong, ClientData>();  //List of clients
-        private Dictionary<string, ClientData> userList = new Dictionary<string, ClientData>();
-        protected Dictionary<string, GameServer> game_list = new Dictionary<string, GameServer>(); //List of games
-        protected Dictionary<string, GameServer> disconnected_games = new Dictionary<string, GameServer>(); //first string is UserID of disconnected player
-        private List<string> game_remove_list = new List<string>();
-        private bool try_login = false;
+        private Dictionary<ulong, ClientData> _clientList = new ();  //List of clients
+        private Dictionary<string, ClientData> _userList = new ();
+        protected Dictionary<string, GameServer> _gameList = new (); //List of games
+        protected Dictionary<string, GameServer> _disconnectedGames = new (); //first string is UserID of disconnected player
+        private List<string> _gameRemoveList = new ();
+        private bool _tryLogin;
 
         protected virtual void Awake()
         {
@@ -55,26 +54,26 @@ namespace TcgEngine.Server
         protected virtual void Update()
         {
             //Update games and Destroy games with no players
-            foreach (KeyValuePair<string, GameServer> pair in game_list)
+            foreach (KeyValuePair<string, GameServer> pair in _gameList)
             {
                 GameServer gserver = pair.Value;
                 gserver.Update();
 
                 if (gserver.IsGameExpired())
-                    game_remove_list.Add(pair.Key);
+                    _gameRemoveList.Add(pair.Key);
             }
 
-            foreach (string key in game_remove_list)
+            foreach (string key in _gameRemoveList)
             {
-                RemoveGameFromDisconnectedGames(game_list[key]);
+                RemoveGameFromDisconnectedGames(_gameList[key]);
                 
-                game_list.Remove(key);
+                _gameList.Remove(key);
                 
 
                 if (ServerMatchmaker.Get())
                     ServerMatchmaker.Get().EndMatch(key);
             }
-            game_remove_list.Clear();
+            _gameRemoveList.Clear();
         }
         
         void RemoveGameFromDisconnectedGames(GameServer game)
@@ -82,16 +81,16 @@ namespace TcgEngine.Server
             if (game == null)
                 return;
 
-            if (disconnected_games.ContainsValue(game))
+            if (_disconnectedGames.ContainsValue(game))
             {
-                var keysToRemove = disconnected_games
+                var keysToRemove = _disconnectedGames
                     .Where(pair => pair.Value == game)
                     .Select(pair => pair.Key)
                     .ToList();
 
                 foreach (var k in keysToRemove)
                 {
-                    disconnected_games.Remove(k);
+                    _disconnectedGames.Remove(k);
                 }
             }
         }
@@ -99,7 +98,7 @@ namespace TcgEngine.Server
 
         protected virtual async void Login()
         {
-            await Authenticator.Get().Login(api_username, api_password);
+            await Authenticator.Get().Login(apiUsername, apiPassword);
             AfterLogin();
         }
          
@@ -111,9 +110,9 @@ namespace TcgEngine.Server
             Debug.Log(api + " authentication: " + success + " (" + permission + ")");
 
             //If auto-refresh fail, login again
-            if (!success && !try_login)
+            if (!success && !_tryLogin)
             {
-                try_login = true;
+                _tryLogin = true;
                 TimeTool.WaitFor(5f, () =>
                 {
                     Login();
@@ -121,26 +120,26 @@ namespace TcgEngine.Server
             }
         }
 
-        protected virtual void OnClientConnected(ulong client_id)
+        protected virtual void OnClientConnected(ulong clientID)
         {
-            ClientData iclient = new ClientData(client_id);
-            client_list[client_id] = iclient;
+            ClientData iclient = new ClientData(clientID);
+            _clientList[clientID] = iclient;
         }
 
-        protected virtual void OnClientDisconnected(ulong client_id)
+        protected virtual void OnClientDisconnected(ulong clientID)
         {
-            ClientData iclient = GetClient(client_id);
-            client_list.Remove(client_id);
+            ClientData iclient = GetClient(clientID);
+            _clientList.Remove(clientID);
             ReceiveDisconnectPlayer(iclient);
-            if (userList.ContainsValue(iclient))
+            if (_userList.ContainsValue(iclient))
             {
-                userList.Remove(iclient.user_id); //Remove from user list
+                _userList.Remove(iclient.userID); //Remove from user list
             }
         }
 
-        protected virtual void ReceiveConnectPlayer(ulong client_id, FastBufferReader reader)
+        protected virtual void ReceiveConnectPlayer(ulong clientID, FastBufferReader reader)
         {
-            ClientData iclient = GetClient(client_id);
+            ClientData iclient = GetClient(clientID);
             reader.ReadNetworkSerializable(out MsgPlayerConnect msg);
 
             if (iclient != null && msg != null)
@@ -151,7 +150,7 @@ namespace TcgEngine.Server
                 if (string.IsNullOrWhiteSpace(msg.game_uid))
                     return;
 
-                Debug.Log("Client " + client_id + " connected to game: " + msg.game_uid);
+                Debug.Log("Client " + clientID + " connected to game: " + msg.game_uid);
 
 
                 if (msg.observer)
@@ -159,7 +158,7 @@ namespace TcgEngine.Server
                 else
                     ConnectPlayerToGame(iclient, msg.user_id, msg.username, msg.game_uid, msg.nb_players);
 
-                GameServer gserver = GetGame(iclient.game_uid);
+                GameServer gserver = GetGame(iclient.gameUID);
                 if (gserver != null)
                 {
                     if (gserver.GetGameData().State == GameState.PlayerDisconnected && !gserver.IsGameOver())
@@ -175,32 +174,30 @@ namespace TcgEngine.Server
             }
         }
         
-        protected virtual void ReceivePlayerInfo(ulong client_id, FastBufferReader reader)
+        protected virtual void ReceivePlayerInfo(ulong clientID, FastBufferReader reader)
         {
-            ClientData iclient = GetClient(client_id);
+            ClientData iclient = GetClient(clientID);
             reader.ReadNetworkSerializable(out MsgPlayerConnect msg);
 
             if (iclient != null && msg != null)
             {
                 if (string.IsNullOrWhiteSpace(msg.user_id))
                     return;
-
                 
+                iclient.userID = msg.user_id;
+                Debug.Log("Client " + clientID + " user_id: " + iclient.userID);
                 
-                iclient.user_id = msg.user_id;
-                Debug.Log("Client " + client_id + " user_id: " + iclient.user_id);
-                
-                if (userList.ContainsKey(msg.user_id))
+                if (_userList.ContainsKey(msg.user_id))
                 {
                     //If user already exists, update client id
-                    ClientData existingClient = userList[msg.user_id];
-                    if (existingClient.client_id != iclient.client_id)
+                    ClientData existingClient = _userList[msg.user_id];
+                    if (existingClient.clientID != iclient.clientID)
                     {
                         //Disconnect old client
                         ForceDisconnectClient(existingClient);
                     }
                 }
-                userList[msg.user_id] = iclient; //Add to user list
+                _userList[msg.user_id] = iclient; //Add to user list
                 
                 ValidateIfPlayerWasDisonnectedFromGame(iclient);
             }
@@ -208,13 +205,13 @@ namespace TcgEngine.Server
 
         protected virtual void ValidateIfPlayerWasDisonnectedFromGame(ClientData client)
         {
-            disconnected_games.TryGetValue(client.user_id, out GameServer gserver);
+            _disconnectedGames.TryGetValue(client.userID, out GameServer gserver);
             if (gserver != null)
             {
                 if (gserver.IsGameOver())
                     return;
                 
-                Messaging.SendObject("reconnected", client.client_id, new MsgPlayerConnect()
+                Messaging.SendObject("reconnected", client.clientID, new MsgPlayerConnect()
                 {
                     game_uid = gserver.gameUID,
                     user_id = "",
@@ -231,22 +228,22 @@ namespace TcgEngine.Server
                 MsgInt msg = new MsgInt();
                 msg.value = -1; //Force disconnect
 
-                Messaging.SendObject("force_disconnect", client.client_id, msg, NetworkDelivery.Reliable);
+                Messaging.SendObject("force_disconnect", client.clientID, msg, NetworkDelivery.Reliable);
                 
                 //Remove from game if connected
                 ReceiveDisconnectPlayer(client);
                 
                 //Remove from client list
-                if (client_list.ContainsKey(client.client_id))
+                if (_clientList.ContainsKey(client.clientID))
                 {
-                    client_list.Remove(client.client_id);
+                    _clientList.Remove(client.clientID);
                 }
                 //Remove from user list if exists
-                if (userList.ContainsKey(client.user_id))
+                if (_userList.ContainsKey(client.userID))
                 {
-                    userList.Remove(client.user_id);
+                    _userList.Remove(client.userID);
                 }
-                Debug.Log("Client " + client.client_id + " disconnected forcefully.");
+                Debug.Log("Client " + client.clientID + " disconnected forcefully.");
             }
         }
 
@@ -255,48 +252,48 @@ namespace TcgEngine.Server
             if (iclient == null)
                 return;
 
-            GameServer gserver = GetGame(iclient.game_uid);
+            GameServer gserver = GetGame(iclient.gameUID);
             if (gserver != null)
             {
                 
                 gserver.RemoveClient(iclient);
-                disconnected_games[iclient.user_id] = gserver; //Store game for later use
+                _disconnectedGames[iclient.userID] = gserver; //Store game for later use
                 
                 gserver.OnPlayerDisconnected(iclient);
             }
         }
 
-        protected virtual void ReceiveGameAction(ulong client_id, FastBufferReader reader)
+        protected virtual void ReceiveGameAction(ulong clientID, FastBufferReader reader)
         {
-            ClientData client = GetClient(client_id);
+            ClientData client = GetClient(clientID);
             if (client != null)
             {
-                GameServer gserver = GetGame(client.game_uid);
+                GameServer gserver = GetGame(client.gameUID);
                 if (gserver != null && gserver.IsPlayer(client))
-                    gserver.ReceiveAction(client_id, reader);
+                    gserver.ReceiveAction(clientID, reader);
             }
         }
 
         //Player wants to connect to game_uid
-        protected virtual void ConnectPlayerToGame(ClientData client, string user_id, string username, string game_uid, int nb_players)
+        protected virtual void ConnectPlayerToGame(ClientData client, string userID, string username, string gameUID, int nbPlayers)
         {
             //Get or Create game
-            GameServer gserver = GetGame(game_uid);
+            GameServer gserver = GetGame(gameUID);
 
             if (gserver == null)
-                gserver = CreateGame(game_uid, nb_players);
+                gserver = CreateGame(gameUID, nbPlayers);
 
-            bool can_connect = gserver.IsPlayer(client) || gserver.CountPlayers() < gserver.nbPlayers;
-            if (gserver != null && can_connect)
+            bool canConnect = gserver.IsPlayer(client) || gserver.CountPlayers() < gserver.nbPlayers;
+            if (canConnect)
             {
                 //Add player to game
-                client.game_uid = gserver.gameUID;
-                client.user_id = user_id;
+                client.gameUID = gserver.gameUID;
+                client.userID = userID;
                 client.username = username;
                 gserver.AddClient(client);
 
-                int player_id = gserver.AddPlayer(client);
-                Player player = gserver.GetGameData().GetPlayer(player_id);
+                int playerID = gserver.AddPlayer(client);
+                Player player = gserver.GetGameData().GetPlayer(playerID);
                 if (player != null)
                 {
                     player.username = username;
@@ -304,84 +301,84 @@ namespace TcgEngine.Server
                 }
 
                 //Return request
-                MsgAfterConnected msg_data = new MsgAfterConnected();
-                msg_data.success = true;
-                msg_data.playerID = player_id;
-                msg_data.game_data = gserver.GetGameData();
-                SendToClient(client.client_id, GameAction.Connected, msg_data, NetworkDelivery.ReliableFragmentedSequenced);
+                MsgAfterConnected msgData = new MsgAfterConnected();
+                msgData.success = true;
+                msgData.playerID = playerID;
+                msgData.game_data = gserver.GetGameData();
+                SendToClient(client.clientID, GameAction.Connected, msgData, NetworkDelivery.ReliableFragmentedSequenced);
             }
         }
 
         //Player wants to connect to game_uid as observer
-        protected virtual void ConnectObserverToGame(ClientData iclient, string user_id, string username, string game_uid)
+        protected virtual void ConnectObserverToGame(ClientData iclient, string userID, string username, string gameUID)
         {
-            GameServer gserver = GetGame(game_uid);
+            GameServer gserver = GetGame(gameUID);
             if (gserver != null && iclient != null)
             {
                 //Add player to game
-                iclient.game_uid = gserver.gameUID;
-                iclient.user_id = user_id;
+                iclient.gameUID = gserver.gameUID;
+                iclient.userID = userID;
                 iclient.username = username;
                 gserver.AddClient(iclient);
 
                 //Return request
-                MsgAfterConnected msg_data = new MsgAfterConnected();
-                msg_data.success = true;
-                msg_data.playerID = -1;
-                msg_data.game_data = gserver.GetGameData();
-                SendToClient(iclient.client_id, GameAction.Connected, msg_data, NetworkDelivery.ReliableFragmentedSequenced);
+                MsgAfterConnected msgData = new MsgAfterConnected();
+                msgData.success = true;
+                msgData.playerID = -1;
+                msgData.game_data = gserver.GetGameData();
+                SendToClient(iclient.clientID, GameAction.Connected, msgData, NetworkDelivery.ReliableFragmentedSequenced);
             }
         }
         
-        public void SendToClient(ulong client_id, ushort tag, INetworkSerializable data, NetworkDelivery delivery)
+        public void SendToClient(ulong clientID, ushort gameAction, INetworkSerializable data, NetworkDelivery delivery)
         {
             FastBufferWriter writer = new FastBufferWriter(128, Unity.Collections.Allocator.Temp, TcgNetwork.MsgSizeMax);
-            writer.WriteValueSafe(tag);
+            writer.WriteValueSafe(gameAction);
             writer.WriteNetworkSerializable(data);
-            Messaging.Send("refresh", client_id, writer, delivery);
+            Messaging.Send("refresh", clientID, writer, delivery);
             writer.Dispose();
         }
 
-        public void SendMsgToClient(ushort client_id, string msg)
+        public void SendMsgToClient(ushort clientID, string msg)
         {
             FastBufferWriter writer = new FastBufferWriter(128, Unity.Collections.Allocator.Temp, TcgNetwork.MsgSizeMax);
             writer.WriteValueSafe(GameAction.ServerMessage);
             writer.WriteValueSafe(msg);
-            Messaging.Send("refresh", client_id, writer, NetworkDelivery.Reliable);
+            Messaging.Send("refresh", clientID, writer, NetworkDelivery.Reliable);
             writer.Dispose();
         }
 
-        public virtual GameServer CreateGame(string uid, int nb_players)
+        public virtual GameServer CreateGame(string uid, int nbPlayers)
         {
-            GameServer game = new GameServer(uid, nb_players, true);
-            game_list[game.gameUID] = game;
+            GameServer game = new GameServer(uid, nbPlayers, true);
+            _gameList[game.gameUID] = game;
             return game;
         }
 
-        public void RemoveGame(string game_id)
+        public void RemoveGame(string gameID)
         {
-            game_list.Remove(game_id);
+            _gameList.Remove(gameID);
         }
 
-        public GameServer GetGame(string game_uid)
+        public GameServer GetGame(string gameUID)
         {
-            if (string.IsNullOrEmpty(game_uid))
+            if (string.IsNullOrEmpty(gameUID))
                 return null;
-            if (game_list.ContainsKey(game_uid))
-                return game_list[game_uid];
+            if (_gameList.ContainsKey(gameUID))
+                return _gameList[gameUID];
             return null;
         }
 
-        public ClientData GetClient(ulong client_id)
+        public ClientData GetClient(ulong clientID)
         {
-            if (client_list.ContainsKey(client_id))
-                return client_list[client_id];
+            if (_clientList.ContainsKey(clientID))
+                return _clientList[clientID];
             return null;
         }
 
         public ClientData GetClientByUser(string username)
         {
-            foreach (KeyValuePair<ulong, ClientData> pair in client_list)
+            foreach (KeyValuePair<ulong, ClientData> pair in _clientList)
             {
                 if (pair.Value.username == username)
                     return pair.Value;
@@ -389,19 +386,19 @@ namespace TcgEngine.Server
             return null;
         }
 
-        public ulong ServerID { get { return TcgNetwork.Get().ServerID; } }
-        public NetworkMessaging Messaging { get { return TcgNetwork.Get().Messaging; } }
+        public ulong ServerID => TcgNetwork.Get().ServerID;
+        public NetworkMessaging Messaging => TcgNetwork.Get().Messaging; 
     }
 
     public class ClientData
     {
-        public ulong client_id; //index of the connection
-        public string user_id; //Player user_id, in auth system
+        public ulong clientID; //index of the connection
+        public string userID; //Player user_id, in auth system
         public string username; //Player username
-        public string game_uid; //Unique id for the game
+        public string gameUID; //Unique id for the game
 
-        public ClientData(ulong id) { client_id = id; }
-        public bool IsInGame() { return !string.IsNullOrEmpty(game_uid); }
+        public ClientData(ulong id) { clientID = id; }
+        public bool IsInGame() { return !string.IsNullOrEmpty(gameUID); }
     }
 
     public class CommandEvent

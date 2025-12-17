@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Monarchs.Api;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -90,7 +91,7 @@ namespace TcgEngine.UI
 
             foreach (UserData user in sorted_users)
             {
-                if (user.permission_level != 1 || user.matches == 0)
+                if (user.permissionLevel != 1 || user.matches == 0)
                     continue; //Dont show admins and user with no matches
 
                 if (user.username == udata.username)

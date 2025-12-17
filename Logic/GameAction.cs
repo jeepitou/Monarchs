@@ -76,7 +76,6 @@
 
         public const ushort ServerMessage = 2190; //Server warning msg
         public const ushort RefreshAll = 2100;
-        
 
         public static string GetString(ushort type)
         {

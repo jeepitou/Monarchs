@@ -1,4 +1,5 @@
-﻿using TcgEngine;
+﻿using Monarchs.Api;
+using TcgEngine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,12 +17,12 @@ namespace Monarchs.Client
         public UnityAction<MatchmakingList> onMatchmakingList;
         public UnityAction<MatchList> onMatchList;
 
-        private bool matchmaking = false;
-        private float timer = 0f;
-        private float match_timer = 0f;
-        private string matchmaking_group;
-        private int matchmaking_players;
-        private UnityAction<bool> connect_callback;
+        private bool _matchmaking;
+        private float _timer;
+        private float _matchTimer;
+        private string _matchmakingGroup;
+        private int _matchmakingPlayers;
+        private UnityAction<bool> _connectCallback;
 
         private static GameClientMatchmaker _instance;
 
@@ -55,43 +56,43 @@ namespace Monarchs.Client
 
         void Update()
         {
-            if (matchmaking)
+            if (_matchmaking)
             {
-                timer += Time.deltaTime;
-                match_timer += Time.deltaTime;
+                _timer += Time.deltaTime;
+                _matchTimer += Time.deltaTime;
 
                 //Send periodic request
-                if (IsConnected() && timer > 2f)
+                if (IsConnected() && _timer > 2f)
                 {
-                    timer = 0f;
-                    SendMatchRequest(true, matchmaking_group, matchmaking_players);
+                    _timer = 0f;
+                    SendMatchRequest(true, _matchmakingGroup, _matchmakingPlayers);
                 }
 
                 //Disconnected, stop
-                if (!IsConnected() && !IsConnecting() && timer > 5f)
+                if (!IsConnected() && !IsConnecting() && _timer > 5f)
                 {
                     StopMatchmaking();
                 }
             }
         }
 
-        public void StartMatchmaking(string group, int nb_players)
+        public void StartMatchmaking(string group, int nbPlayers)
         {
-            if (matchmaking)
+            if (_matchmaking)
                 StopMatchmaking();
 
             Debug.Log("Start Matchmaking!");
-            matchmaking_group = group;
-            matchmaking_players = nb_players;
-            matchmaking = true;
-            match_timer = 0f;
-            timer = 0f;
+            _matchmakingGroup = group;
+            _matchmakingPlayers = nbPlayers;
+            _matchmaking = true;
+            _matchTimer = 0f;
+            _timer = 0f;
 
-            Connect(NetworkData.Get().url, NetworkData.Get().port, (bool success) =>
+            Connect(NetworkData.Get().url, NetworkData.Get().port, (success) =>
             {
                 if (success)
                 {
-                    SendMatchRequest(false, group, nb_players);
+                    SendMatchRequest(false, group, nbPlayers);
                 }
                 else
                 {
@@ -102,19 +103,19 @@ namespace Monarchs.Client
 
         public void StopMatchmaking()
         {
-            if (matchmaking)
+            if (_matchmaking)
             {
                 Debug.Log("Stop Matchmaking!");
                 onMatchingComplete?.Invoke(null);
-                matchmaking_group = "";
-                matchmaking_players = 0;
-                matchmaking = false;
+                _matchmakingGroup = "";
+                _matchmakingPlayers = 0;
+                _matchmaking = false;
             }
         }
 
         public void RefreshMatchmakingList()
         {
-            Connect(NetworkData.Get().url, NetworkData.Get().port, (bool success) =>
+            Connect(NetworkData.Get().url, NetworkData.Get().port, (success) =>
             {
                 if(success)
                     SendMatchmakingListRequest();
@@ -123,7 +124,7 @@ namespace Monarchs.Client
 
         public void RefreshMatchList(string username)
         {
-            Connect(NetworkData.Get().url, NetworkData.Get().port, (bool success) =>
+            Connect(NetworkData.Get().url, NetworkData.Get().port, (success) =>
             {
                 if (success)
                     SendMatchListRequest(username);
@@ -146,7 +147,7 @@ namespace Monarchs.Client
                 return;
             }
 
-            connect_callback = callback;
+            _connectCallback = callback;
             TcgNetwork.Get().StartClient(url, port);
         }
 
@@ -158,64 +159,64 @@ namespace Monarchs.Client
         private void OnConnect()
         {
             Debug.Log("Connected to server!");
-            connect_callback?.Invoke(true);
-            connect_callback = null;
+            _connectCallback?.Invoke(true);
+            _connectCallback = null;
         }
 
         private void OnDisconnect()
         {
             StopMatchmaking(); //Stop if currently running
-            connect_callback?.Invoke(false);
-            connect_callback = null;
-            matchmaking = false;
+            _connectCallback?.Invoke(false);
+            _connectCallback = null;
+            _matchmaking = false;
         }
 
-        private void SendMatchRequest(bool refresh, string group, int nb_players)
+        private void SendMatchRequest(bool refresh, string group, int nbPlayers)
         {
-            MsgMatchmaking msg_match = new MsgMatchmaking();
+            MsgMatchmaking msgMatch = new MsgMatchmaking();
             UserData udata = Authenticator.Get().GetUserData();
-            msg_match.user_id = Authenticator.Get().GetUserId();
-            msg_match.username = Authenticator.Get().GetUsername();
-            msg_match.group = group;
-            msg_match.players = nb_players;
-            msg_match.elo = udata.elo;
-            msg_match.time = match_timer;
-            msg_match.refresh = refresh;
-            Messaging.SendObject("matchmaking", ServerID, msg_match, NetworkDelivery.Reliable);
+            msgMatch.user_id = Authenticator.Get().GetUserId();
+            msgMatch.username = Authenticator.Get().GetUsername();
+            msgMatch.group = group;
+            msgMatch.players = nbPlayers;
+            msgMatch.elo = udata.elo;
+            msgMatch.time = _matchTimer;
+            msgMatch.refresh = refresh;
+            Messaging.SendObject("matchmaking", ServerID, msgMatch, NetworkDelivery.Reliable);
         }
 
         private void SendMatchmakingListRequest()
         {
-            MsgMatchmakingList msg_match = new MsgMatchmakingList();
-            msg_match.username = ""; //Return all users
-            Messaging.SendObject("matchmaking_list", ServerID, msg_match, NetworkDelivery.Reliable);
+            MsgMatchmakingList msgMatch = new MsgMatchmakingList();
+            msgMatch.username = ""; //Return all users
+            Messaging.SendObject("matchmaking_list", ServerID, msgMatch, NetworkDelivery.Reliable);
         }
 
         private void SendMatchListRequest(string username)
         {
-            MsgMatchmakingList msg_match = new MsgMatchmakingList();
-            msg_match.username = username;
-            Messaging.SendObject("match_list", ServerID, msg_match, NetworkDelivery.Reliable);
+            MsgMatchmakingList msgMatch = new MsgMatchmakingList();
+            msgMatch.username = username;
+            Messaging.SendObject("match_list", ServerID, msgMatch, NetworkDelivery.Reliable);
         }
 
-        private void ReceiveMatchmaking(ulong client_id, FastBufferReader reader)
+        private void ReceiveMatchmaking(ulong clientID, FastBufferReader reader)
         {
             reader.ReadNetworkSerializable(out MatchmakingResult msg);
 
-            if (IsConnected() && matchmaking && matchmaking_group == msg.group)
+            if (IsConnected() && _matchmaking && _matchmakingGroup == msg.group)
             {
-                matchmaking = !msg.success; //Stop matchmaking if success
+                _matchmaking = !msg.success; //Stop matchmaking if success
                 onMatchingComplete?.Invoke(msg);
             }
         }
 
-        private void ReceiveMatchmakingList(ulong client_id, FastBufferReader reader)
+        private void ReceiveMatchmakingList(ulong clientID, FastBufferReader reader)
         {
             reader.ReadNetworkSerializable(out MatchmakingList list);
             onMatchmakingList?.Invoke(list);
         }
 
-        private void ReceiveMatchList(ulong client_id, FastBufferReader reader)
+        private void ReceiveMatchList(ulong clientID, FastBufferReader reader)
         {
             reader.ReadNetworkSerializable(out MatchList list);
             onMatchList?.Invoke(list);
@@ -223,22 +224,22 @@ namespace Monarchs.Client
 
         public bool IsMatchmaking()
         {
-            return matchmaking;
+            return _matchmaking;
         }
 
         public string GetGroup()
         {
-            return matchmaking_group;
+            return _matchmakingGroup;
         }
 
         public int GetNbPlayers()
         {
-            return matchmaking_players;
+            return _matchmakingPlayers;
         }
 
         public float GetTimer()
         {
-            return match_timer;
+            return _matchTimer;
         }
 
         public bool IsConnected()
@@ -251,8 +252,8 @@ namespace Monarchs.Client
             return TcgNetwork.Get().IsConnecting();
         }
 
-        public ulong ServerID { get { return TcgNetwork.Get().ServerID; } }
-        public NetworkMessaging Messaging { get { return TcgNetwork.Get().Messaging; } }
+        public ulong ServerID => TcgNetwork.Get().ServerID;
+        public NetworkMessaging Messaging => TcgNetwork.Get().Messaging;
 
         public static GameClientMatchmaker Get()
         {
